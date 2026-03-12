@@ -3,593 +3,369 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bulk — Inventario de Mazorcas</title>
+<title>BulkScan · Semilla Nueva</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cabinet+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --bg:       #f7f4ef;
-  --surface:  #ffffff;
-  --border:   #e5e0d8;
-  --accent:   #2d6a4f;
-  --accent2:  #52b788;
-  --warn:     #e76f51;
-  --text:     #1a1a1a;
-  --muted:    #8a8278;
-  --scan-bg:  #eaf7f0;
-  --qty-bg:   #fdf6ec;
-  --shadow:   0 2px 12px rgba(0,0,0,0.07);
+  --bg:      #f7f4ef;
+  --surface: #ffffff;
+  --border:  #e5e0d8;
+  --accent:  #2d6a4f;
+  --accent2: #52b788;
+  --warn:    #e76f51;
+  --text:    #1a1a1a;
+  --muted:   #8a8278;
+  --scan-bg: #eaf7f0;
+  --qty-bg:  #fdf6ec;
+  --shadow:  0 2px 12px rgba(0,0,0,0.07);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Cabinet Grotesk', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-/* TEXTURE */
+body { font-family: 'Cabinet Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 body::before {
-  content: '';
-  position: fixed; inset: 0;
+  content: ''; position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8bfb0' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none; z-index: 0;
 }
 
+/* LOGIN */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+#loginScreen::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.login-box {
+  background: white; border-radius: 22px; padding: 36px 32px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 24px 64px rgba(45,106,79,0.15); position: relative; z-index: 1;
+}
+.login-logo { text-align: center; margin-bottom: 28px; }
+.login-logo .mark {
+  width: 56px; height: 56px; background: var(--accent); border-radius: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(45,106,79,0.3);
+}
+.login-logo h1 { font-size: 1.4rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+.login-logo p  { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+.lfield { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.lfield label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.lfield input {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 11px 14px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 0.95rem; color: var(--text); outline: none; transition: border-color 0.2s;
+}
+.lfield input:focus { border-color: var(--accent); background: #fff; }
+.btn-login {
+  width: 100%; padding: 13px; background: var(--accent); color: white;
+  border: none; border-radius: 10px; font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 0.95rem; font-weight: 800; cursor: pointer; margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(45,106,79,0.3); transition: all 0.15s;
+}
+.btn-login:hover { background: #235c42; transform: translateY(-1px); }
+.btn-login:disabled { background: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
+.login-err {
+  background: #eaf7f0; border: 1px solid #fecaca; border-radius: 8px;
+  padding: 9px 12px; font-size: 0.78rem; color: #dc2626;
+  margin-top: 12px; display: none; text-align: center;
+}
+.login-err.show { display: block; animation: shake 0.3s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
 /* HEADER */
 header {
-  position: sticky; top: 0; z-index: 50;
-  background: var(--accent);
-  padding: 0 28px;
-  height: 60px;
+  position: sticky; top: 0; z-index: 50; background: var(--accent);
+  padding: 0 24px; height: 60px;
   display: flex; align-items: center; justify-content: space-between;
   box-shadow: 0 2px 16px rgba(45,106,79,0.25);
 }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 34px; height: 34px; background: var(--accent2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.logo-name { font-size: 1rem; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
+.logo-sub  { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 1px; }
+.hright    { display: flex; align-items: center; gap: 10px; }
+.user-chip { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 5px 12px 5px 8px; }
+.user-avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--accent2); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: #fff; }
+.user-name { font-size: 0.75rem; font-weight: 700; color: #fff; }
+.user-rol  { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: rgba(255,255,255,0.6); }
+.sync-pill { font-family: 'DM Mono', monospace; font-size: 0.62rem; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s; }
+.sync-pill.ok     { background: rgba(82,183,136,0.25); color: #a7f3c8; border-color: rgba(82,183,136,0.4); }
+.sync-pill.err    { background: rgba(231,111,81,0.25); color: #ffc4b4; border-color: rgba(231,111,81,0.4); }
+.sync-pill.saving { background: rgba(255,200,80,0.2);  color: #ffe9a0; border-color: rgba(255,200,80,0.3); }
+.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); border-radius: 8px; padding: 6px 12px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-logout:hover { background: rgba(255,255,255,0.2); color: #fff; }
 
-.logo {
-  display: flex; align-items: center; gap: 12px;
-}
+/* TABS */
+.tabs { position: relative; z-index: 1; max-width: 980px; margin: 20px auto 0; padding: 0 20px; display: flex; gap: 6px; }
+.tab { padding: 8px 18px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all 0.15s; }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab:hover:not(.active) { background: var(--bg); color: var(--text); }
 
-.logo-mark {
-  width: 34px; height: 34px;
-  background: var(--accent2);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
-}
+/* LAYOUT */
+.wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 20px 20px 60px; display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+.wrap.full { grid-template-columns: 1fr; }
 
-.logo-name {
-  font-size: 1.05rem; font-weight: 900;
-  color: #fff; letter-spacing: -0.02em;
-}
-
-.logo-sub {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem; color: rgba(255,255,255,0.55);
-  letter-spacing: 0.08em; text-transform: uppercase;
-  margin-top: 1px;
-}
-
-.header-right {
-  display: flex; align-items: center; gap: 10px;
-}
-
-.sync-pill {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.7);
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: all 0.3s;
-}
-
-.sync-pill.ok  { background: rgba(82,183,136,0.25); color: #a7f3c8; border-color: rgba(82,183,136,0.4); }
-.sync-pill.err { background: rgba(231,111,81,0.25); color: #ffc4b4; border-color: rgba(231,111,81,0.4); }
-.sync-pill.saving { background: rgba(255,200,80,0.2); color: #ffe9a0; border-color: rgba(255,200,80,0.3); }
-
-/* MAIN */
-.wrap {
-  position: relative; z-index: 1;
-  max-width: 980px; margin: 0 auto;
-  padding: 24px 20px 60px;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-/* CARDS */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
-.card-head {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 9px;
-}
-
-.card-head h2 {
-  font-size: 0.7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); }
+.card-head { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 9px; }
+.card-head h2 { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
 .card-body { padding: 20px; }
-
-/* STATUS INDICATOR */
-.status-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent2);
-  box-shadow: 0 0 0 3px rgba(82,183,136,0.2);
-  animation: breathe 2.5s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 3px rgba(82,183,136,0.2); animation: breathe 2.5s ease-in-out infinite; flex-shrink: 0; }
 .status-dot.waiting { background: #f4a261; box-shadow: 0 0 0 3px rgba(244,162,97,0.2); }
+@keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
 
-@keyframes breathe {
-  0%,100% { opacity:1; transform:scale(1); }
-  50% { opacity:0.5; transform:scale(0.75); }
-}
-
-/* SCAN FIELD */
-.field-wrap {
-  background: var(--scan-bg);
-  border: 2px solid #b7e4c7;
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  position: relative;
-}
-
-.field-wrap.focused {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(45,106,79,0.1);
-}
-
-.field-wrap.flash {
-  animation: scanFlash 0.35s ease;
-}
-
-@keyframes scanFlash {
-  0%   { background: var(--scan-bg); }
-  40%  { background: #bbf7d0; }
-  100% { background: var(--scan-bg); }
-}
-
-.field-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem; font-weight: 500;
-  color: var(--accent);
-  letter-spacing: 0.12em; text-transform: uppercase;
-  margin-bottom: 7px;
-  display: flex; align-items: center; gap: 6px;
-}
-
-.field-tag::after {
-  content: ''; flex: 1; height: 1px;
-  background: rgba(45,106,79,0.15);
-}
-
-.scan-input {
-  width: 100%; background: transparent;
-  border: none; outline: none;
-  font-family: 'DM Mono', monospace;
-  font-size: 1.3rem; font-weight: 500;
-  color: var(--text);
-  caret-color: var(--accent);
-}
-
+/* FIELDS */
+.field-wrap { background: var(--scan-bg); border: 2px solid #b7e4c7; border-radius: 12px; padding: 14px 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+.field-wrap.focused { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(45,106,79,0.1); }
+.field-wrap.flash { animation: scanFlash 0.35s ease; }
+@keyframes scanFlash { 0%{background:var(--scan-bg)} 40%{background:#bbf7d0} 100%{background:var(--scan-bg)} }
+.field-tag { font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+.field-tag::after { content: ''; flex: 1; height: 1px; background: rgba(45,106,79,0.15); }
+.scan-input { width: 100%; background: transparent; border: none; outline: none; font-family: 'DM Mono', monospace; font-size: 1.3rem; font-weight: 500; color: var(--text); caret-color: var(--accent); }
 .scan-input::placeholder { color: #b5c9bd; font-size: 0.9rem; font-weight: 400; }
-
-/* QTY FIELD */
-.qty-wrap {
-  margin-top: 14px;
-  background: var(--qty-bg);
-  border: 2px solid #f4d5a8;
-  border-radius: 12px;
-  padding: 14px 16px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.qty-wrap.active-field {
-  opacity: 1; pointer-events: all;
-  border-color: #e67e22;
-  box-shadow: 0 0 0 4px rgba(230,126,34,0.1);
-}
-
-.qty-tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem; font-weight: 500;
-  color: #9c5a1d;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  margin-bottom: 7px;
-  display: flex; align-items: center; gap: 6px;
-}
-
+.qty-wrap { margin-top: 14px; background: var(--qty-bg); border: 2px solid #f4d5a8; border-radius: 12px; padding: 14px 16px; transition: border-color 0.2s, box-shadow 0.2s; opacity: 0.4; pointer-events: none; }
+.qty-wrap.active-field { opacity: 1; pointer-events: all; border-color: #9c5a1d; box-shadow: 0 0 0 4px rgba(230,126,34,0.1); }
+.qty-tag { font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 500; color: #9c5a1d; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
 .qty-tag::after { content: ''; flex: 1; height: 1px; background: rgba(156,90,29,0.15); }
+.qty-input { width: 100%; background: transparent; border: none; outline: none; font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 500; color: var(--text); caret-color: #e67e22; }
+.qty-input::placeholder { color: #b7e4c7; font-size: 0.95rem; font-weight: 400; }
 
-.qty-input {
-  width: 100%; background: transparent;
-  border: none; outline: none;
-  font-family: 'DM Mono', monospace;
-  font-size: 1.5rem; font-weight: 500;
-  color: var(--text);
-  caret-color: #e67e22;
-}
-
-.qty-input::placeholder { color: #d4b896; font-size: 0.95rem; font-weight: 400; }
-
-/* STEP INDICATOR */
-.steps {
-  display: flex; gap: 8px;
-  margin-top: 16px;
-}
-
-.step {
-  flex: 1; padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  text-align: center;
-  transition: all 0.2s;
-}
-
-.step.active {
-  border-color: var(--accent);
-  background: #eaf7f0;
-}
-
-.step-num {
-  font-family: 'DM Mono', monospace;
-  font-size: 1rem; font-weight: 500;
-  color: var(--muted);
-}
-
+/* STEPS */
+.steps { display: flex; gap: 8px; margin-top: 16px; }
+.step { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; transition: all 0.2s; }
+.step.active { border-color: var(--accent); background: #eaf7f0; }
+.step-num { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; color: var(--muted); }
 .step.active .step-num { color: var(--accent); }
+.step-lbl { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 
-.step-lbl {
-  font-size: 0.6rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.06em;
-  margin-top: 2px;
-}
-
-/* LAST ITEM */
-.last-item {
-  margin-top: 14px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 10px;
-  padding: 12px 14px;
-  display: none;
-  animation: popIn 0.25s ease;
-}
-
-.last-item.show { display: block; }
-
-@keyframes popIn {
-  from { opacity:0; transform:scale(0.97); }
-  to   { opacity:1; transform:scale(1); }
-}
-
-.last-code {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.85rem; font-weight: 500;
-  color: var(--accent);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.last-qty {
-  font-size: 1.3rem; font-weight: 900;
-  color: var(--text); line-height: 1;
-  margin-top: 2px;
-}
-
-.last-meta {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem; color: var(--muted);
-  margin-top: 3px;
-}
+/* LAST */
+.last-item { margin-top: 14px; background: #eaf7f0; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px; display: none; }
+.last-item.show { display: block; animation: popIn 0.25s ease; }
+@keyframes popIn { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+.last-code { font-family: 'DM Mono', monospace; font-size: 0.85rem; font-weight: 500; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.last-qty  { font-size: 1.3rem; font-weight: 900; color: var(--text); line-height: 1; margin-top: 2px; }
+.last-meta { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 3px; }
 
 /* STATS */
-.stats {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: 10px; margin-top: 14px;
-}
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 14px; }
+.stat { background: #f7f4ef; border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; text-align: center; }
+.stat-n { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 500; color: var(--accent); line-height: 1; }
+.stat-l { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 3px; }
 
-.stat {
-  background: #f7f4ef;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 10px; text-align: center;
-}
-
-.stat-n {
-  font-family: 'DM Mono', monospace;
-  font-size: 1.4rem; font-weight: 500;
-  color: var(--accent); line-height: 1;
-}
-
-.stat-l {
-  font-size: 0.58rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.07em;
-  margin-top: 3px;
-}
-
-/* ACTIONS */
+/* BUTTONS */
 .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
-
-.btn {
-  padding: 10px 16px; border-radius: 9px;
-  font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 0.8rem; font-weight: 700;
-  cursor: pointer; border: none; width: 100%;
-  transition: all 0.15s; letter-spacing: 0.02em;
-}
-
-.btn-primary {
-  background: var(--accent); color: #fff;
-  box-shadow: 0 3px 10px rgba(45,106,79,0.25);
-}
+.btn { padding: 10px 16px; border-radius: 9px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; width: 100%; transition: all 0.15s; }
+.btn-primary   { background: var(--accent); color: #fff; box-shadow: 0 3px 10px rgba(45,106,79,0.25); }
 .btn-primary:hover { background: #235c42; transform: translateY(-1px); }
-
-.btn-secondary {
-  background: transparent; color: var(--muted);
-  border: 1px solid var(--border);
-}
+.btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--bg); color: var(--text); }
-
-.btn-danger {
-  background: transparent; color: var(--warn);
-  border: 1px solid rgba(231,111,81,0.3);
-  font-size: 0.75rem;
-}
+.btn-danger    { background: transparent; color: var(--warn); border: 1px solid rgba(231,111,81,0.3); font-size: 0.75rem; }
 .btn-danger:hover { background: rgba(231,111,81,0.06); }
 
-/* TABLE PANEL */
+/* TABLE */
 .tbl-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); }
-
-.tbl-toolbar {
-  padding: 13px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-
+.tbl-toolbar { padding: 13px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .tbl-toolbar h2 { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
-
 .search-wrap { position: relative; flex: 1; max-width: 200px; }
-
-.search-wrap::before {
-  content: '⌕';
-  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
-  color: var(--muted); font-size: 1rem; pointer-events: none;
-}
-
-#searchInput {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 6px 10px 6px 28px;
-  font-family: 'DM Mono', monospace; font-size: 0.72rem;
-  color: var(--text); outline: none; width: 100%;
-}
-
-#searchInput:focus { border-color: var(--accent); }
-#searchInput::placeholder { color: var(--muted); }
-
+.search-wrap::before { content: '⌕'; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1rem; pointer-events: none; }
+.search-wrap input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px 6px 28px; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text); outline: none; width: 100%; }
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
 .tbl-wrap { overflow-x: auto; max-height: 530px; overflow-y: auto; }
-
 table { width: 100%; border-collapse: collapse; }
-
 thead { position: sticky; top: 0; background: var(--surface); z-index: 5; }
-
-thead th {
-  padding: 11px 16px; text-align: left;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem; font-weight: 500;
-  color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
-  border-bottom: 1px solid var(--border); white-space: nowrap;
-}
-
+thead th { padding: 11px 16px; text-align: left; font-family: 'DM Mono', monospace; font-size: 0.6rem; font-weight: 500; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
 tbody tr { border-bottom: 1px solid rgba(229,224,216,0.6); transition: background 0.1s; }
 tbody tr:hover { background: rgba(45,106,79,0.03); }
 tbody tr.new-row { animation: rowSlide 0.4s ease; }
-
-@keyframes rowSlide {
-  from { opacity:0; background: #bbf7d0; }
-  to   { opacity:1; background: transparent; }
-}
-
-tbody td {
-  padding: 10px 16px;
-  font-family: 'DM Mono', monospace; font-size: 0.75rem;
-  color: var(--text); white-space: nowrap;
-}
-
-td.seq { color: var(--muted); font-size: 0.65rem; width: 36px; }
-td.code { font-weight: 500; color: var(--accent); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
-td.qty { font-weight: 700; font-size: 0.95rem; color: #9c5a1d; }
+@keyframes rowSlide { from{opacity:0;background:#bbf7d0} to{opacity:1;background:transparent} }
+tbody td { padding: 10px 16px; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text); white-space: nowrap; }
+td.seq  { color: var(--muted); font-size: 0.65rem; width: 36px; }
+td.code { font-weight: 500; color: var(--accent); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+td.qty  { font-weight: 700; font-size: 0.95rem; color: #9c5a1d; }
+td.user { color: var(--muted); font-size: 0.68rem; }
 td.time { color: var(--muted); font-size: 0.65rem; }
-td.act { text-align: right; }
-
-.btn-del {
-  padding: 3px 8px; border-radius: 5px; cursor: pointer;
-  font-family: 'DM Mono', monospace; font-size: 0.62rem;
-  border: 1px solid rgba(231,111,81,0.3); background: transparent; color: var(--warn);
-}
+td.act  { text-align: right; }
+.btn-del { padding: 3px 8px; border-radius: 5px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.62rem; border: 1px solid rgba(231,111,81,0.3); background: transparent; color: var(--warn); }
 .btn-del:hover { background: rgba(231,111,81,0.08); }
-
 .empty-state { padding: 60px 20px; text-align: center; color: var(--muted); }
 .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.35; }
-.empty-txt { font-size: 0.8rem; line-height: 1.7; }
+.empty-txt  { font-size: 0.8rem; line-height: 1.7; }
+
+/* ADMIN USERS */
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 14px; padding: 20px; }
+.user-card  { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 5px; }
+.uc-avatar  { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.uc-name    { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+.uc-user    { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+.uc-stats   { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent); margin-top: 4px; }
 
 /* TOAST */
-#toast {
-  position: fixed; bottom: 24px; left: 50%;
-  transform: translateX(-50%) translateY(16px);
-  background: var(--text); color: #fff;
-  border-radius: 10px; padding: 10px 20px;
-  font-family: 'DM Mono', monospace; font-size: 0.72rem;
-  opacity: 0; transition: opacity 0.25s, transform 0.25s;
-  z-index: 999; pointer-events: none; white-space: nowrap;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--text); color: #fff; border-radius: 10px; padding: 10px 20px; font-family: 'DM Mono', monospace; font-size: 0.72rem; opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 999; pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* CONFIG MODAL */
-.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:200; align-items:center; justify-content:center; }
-.overlay.open { display:flex; }
-.modal { background: var(--surface); border-radius: 18px; padding: 28px; width: 94%; max-width: 440px; box-shadow: 0 16px 48px rgba(0,0,0,0.15); }
-.modal h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
-.modal p { font-size: 0.78rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
-.mfield { display:flex; flex-direction:column; gap:5px; margin-bottom: 14px; }
-.mfield label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-.mfield input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text); outline: none; }
-.mfield input:focus { border-color: var(--accent); }
-.modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
-.mbtn { padding: 9px 18px; border-radius: 8px; font-family: 'Cabinet Grotesk', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
-.mbtn-cancel { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-.mbtn-save { background: var(--accent); border: none; color: #fff; }
 
 @media (max-width: 680px) {
   .wrap { grid-template-columns: 1fr; }
   .tbl-wrap { max-height: 360px; }
+  .hright .user-chip .user-rol { display: none; }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-mark">🌽</div>
-    <div>
-      <div class="logo-name">BulkScan</div>
-      <div class="logo-sub">Inventario de Mazorcas</div>
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="mark">🌽</div>
+      <h1>BulkScan</h1>
+      <p>Inventario de Mazorcas · Semilla Nueva</p>
     </div>
-  </div>
-  <div class="header-right">
-    <span class="sync-pill" id="syncPill">⬤ conectando…</span>
-  </div>
-</header>
-
-<div class="wrap">
-  <!-- LEFT -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
-
-    <div class="card">
-      <div class="card-head">
-        <div class="status-dot" id="statusDot"></div>
-        <h2 id="statusLabel">Listo — escanea un bulk</h2>
-      </div>
-      <div class="card-body">
-
-        <!-- SCAN -->
-        <div class="field-wrap" id="scanWrap">
-          <div class="field-tag">① código de barras</div>
-          <input id="inputScan" class="scan-input" type="text"
-            placeholder="Escanea aquí..." autocomplete="off" autofocus/>
-        </div>
-
-        <!-- QTY -->
-        <div class="qty-wrap" id="qtyWrap">
-          <div class="qty-tag">② cantidad de mazorcas</div>
-          <input id="inputQty" class="qty-input" type="number" min="0"
-            placeholder="Ej: 47"/>
-        </div>
-
-        <!-- STEPS -->
-        <div class="steps">
-          <div class="step active" id="step1">
-            <div class="step-num">①</div>
-            <div class="step-lbl">Escanear</div>
-          </div>
-          <div class="step" id="step2">
-            <div class="step-num">②</div>
-            <div class="step-lbl">Cantidad</div>
-          </div>
-          <div class="step" id="step3">
-            <div class="step-num">✓</div>
-            <div class="step-lbl">Guardado</div>
-          </div>
-        </div>
-
-        <!-- LAST -->
-        <div class="last-item" id="lastItem">
-          <div class="last-code" id="lastCode">—</div>
-          <div class="last-qty"><span id="lastQty">—</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted)">mazorcas</span></div>
-          <div class="last-meta" id="lastMeta">—</div>
-        </div>
-
-        <!-- STATS -->
-        <div class="stats">
-          <div class="stat"><div class="stat-n" id="sBulks">0</div><div class="stat-l">Bulks</div></div>
-          <div class="stat"><div class="stat-n" id="sMazorcas">0</div><div class="stat-l">Mazorcas</div></div>
-          <div class="stat"><div class="stat-n" id="sPromedio">—</div><div class="stat-l">Promedio</div></div>
-        </div>
-
-        <div class="actions">
-          <button class="btn btn-primary" onclick="exportCSV()">⬇ Exportar CSV</button>
-          <button class="btn btn-secondary" onclick="copiarSheets()">📊 Copiar para Sheets</button>
-          <button class="btn btn-danger" onclick="limpiarTodo()">⚠ Limpiar todo</button>
-        </div>
-
-      </div>
+    <div class="lfield">
+      <label>Usuario</label>
+      <input id="loginUser" type="text" placeholder="tu usuario" autocomplete="username" autocapitalize="none"/>
     </div>
-
-  </div>
-
-  <!-- RIGHT: TABLE -->
-  <div class="tbl-card">
-    <div class="tbl-toolbar">
-      <h2>Registros</h2>
-      <div class="search-wrap">
-        <input id="searchInput" type="text" placeholder="Filtrar..."/>
-      </div>
+    <div class="lfield">
+      <label>Contraseña</label>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
     </div>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Código de Barras (Bulk)</th>
-            <th>Mazorcas</th>
-            <th>Hora</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">🌽</div>
-        <div class="empty-txt">Listo para comenzar.<br/>Escanea el primer bulk.</div>
-      </div>
-    </div>
+    <button class="btn-login" id="btnLogin">Ingresar</button>
+    <div class="login-err" id="loginErr">Usuario o contraseña incorrectos.</div>
   </div>
 </div>
 
-<!-- CONFIG MODAL -->
-<div class="overlay" id="configOverlay">
-  <div class="modal">
-    <h3>⚙ Configurar JSONBin</h3>
-    <p>Para guardar en la nube y acceder desde cualquier dispositivo, crea un bin en <strong>jsonbin.io</strong> y pega las credenciales aquí.</p>
-    <div class="mfield">
-      <label>BIN ID</label>
-      <input id="cfgBinId" type="text" placeholder="ej: 64abc123de456f"/>
+<!-- APP -->
+<div id="app" style="display:none;">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" stroke="white" stroke-width="6" fill="none"/>
+          <path d="M50 80 Q50 55 50 40" stroke="white" stroke-width="5" stroke-linecap="round"/>
+          <path d="M50 55 Q35 48 28 35 Q42 32 50 45" fill="white" opacity="0.9"/>
+          <path d="M50 48 Q65 40 72 27 Q58 25 50 38" fill="white" opacity="0.75"/>
+          <path d="M50 62 Q38 58 32 48 Q44 46 50 57" fill="white" opacity="0.6"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">BulkScan</div>
+        <div class="logo-sub">Inventario de Mazorcas</div>
+      </div>
     </div>
-    <div class="mfield">
-      <label>API Key (X-Master-Key)</label>
-      <input id="cfgApiKey" type="text" placeholder="$2a$10$..."/>
+    <div class="hright">
+      <span class="sync-pill" id="syncPill">⬤ conectando…</span>
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div>
+          <div class="user-name" id="userName">—</div>
+          <div class="user-rol"  id="userRol">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Salir</button>
     </div>
-    <div class="modal-btns">
-      <button class="mbtn mbtn-cancel" onclick="closeConfig()">Cancelar</button>
-      <button class="mbtn mbtn-save" onclick="guardarConfig()">Guardar y conectar</button>
+  </header>
+
+  <!-- Tabs solo admin -->
+  <div class="tabs" id="adminTabs" style="display:none;">
+    <button class="tab active" id="tabScan"  onclick="setTab('scan')">🌽 Escanear</button>
+    <button class="tab"        id="tabAll"   onclick="setTab('all')">📋 Todos los registros</button>
+    <button class="tab"        id="tabUsers" onclick="setTab('users')">👥 Usuarios</button>
+  </div>
+
+  <!-- SCAN VIEW -->
+  <div id="viewScan">
+    <div class="wrap">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-head">
+            <div class="status-dot" id="statusDot"></div>
+            <h2 id="statusLabel">Listo — escanea un bulk</h2>
+          </div>
+          <div class="card-body">
+            <div class="field-wrap" id="scanWrap">
+              <div class="field-tag">① código de barras</div>
+              <input id="inputScan" class="scan-input" type="text" placeholder="Escanea aquí..." autocomplete="off" autofocus/>
+            </div>
+            <div class="qty-wrap" id="qtyWrap">
+              <div class="qty-tag">② cantidad de mazorcas</div>
+              <input id="inputQty" class="qty-input" type="number" min="0" placeholder="Ej: 47"/>
+            </div>
+            <div class="steps">
+              <div class="step active" id="step1"><div class="step-num">①</div><div class="step-lbl">Escanear</div></div>
+              <div class="step"        id="step2"><div class="step-num">②</div><div class="step-lbl">Cantidad</div></div>
+              <div class="step"        id="step3"><div class="step-num">✓</div><div class="step-lbl">Guardado</div></div>
+            </div>
+            <div class="last-item" id="lastItem">
+              <div class="last-code" id="lastCode">—</div>
+              <div class="last-qty"><span id="lastQty">—</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted)">mazorcas</span></div>
+              <div class="last-meta" id="lastMeta">—</div>
+            </div>
+            <div class="stats">
+              <div class="stat"><div class="stat-n" id="sBulks">0</div><div class="stat-l">Mis Bulks</div></div>
+              <div class="stat"><div class="stat-n" id="sMazorcas">0</div><div class="stat-l">Mazorcas</div></div>
+              <div class="stat"><div class="stat-n" id="sPromedio">—</div><div class="stat-l">Promedio</div></div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary"   onclick="exportCSV(false)">⬇ Exportar mis registros CSV</button>
+              <button class="btn btn-secondary" onclick="copiarSheets(false)">📊 Copiar para Sheets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-toolbar">
+          <h2>Mis registros</h2>
+          <div class="search-wrap"><input id="searchMio" type="text" placeholder="Filtrar..."/></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Código de Barras</th><th>Mazorcas</th><th>Hora</th><th></th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🌱</div>
+            <div class="empty-txt">Listo para comenzar.<br/>Escanea el primer bulk.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL VIEW (admin) -->
+  <div id="viewAll" style="display:none;">
+    <div class="wrap full">
+      <div class="tbl-card">
+        <div class="tbl-toolbar">
+          <h2>Todos los registros</h2>
+          <div class="search-wrap"><input id="searchAll" type="text" placeholder="Filtrar..."/></div>
+          <button class="btn btn-primary"   style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="exportCSV(true)">⬇ CSV completo</button>
+          <button class="btn btn-secondary" style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="copiarSheets(true)">📊 Copiar todo</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Código de Barras</th><th>Mazorcas</th><th>Registrado por</th><th>Fecha</th><th>Hora</th><th></th></tr></thead>
+            <tbody id="tbodyAll"></tbody>
+          </table>
+          <div class="empty-state" id="emptyAll">
+            <div class="empty-icon">📋</div><div class="empty-txt">No hay registros aún.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USERS VIEW (admin) -->
+  <div id="viewUsers" style="display:none;">
+    <div class="wrap full">
+      <div class="tbl-card">
+        <div class="card-head" style="padding:14px 20px;border-bottom:1px solid var(--border);">
+          <h2 style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);">👥 Resumen por usuario</h2>
+        </div>
+        <div class="admin-grid" id="adminGrid"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -597,249 +373,307 @@ td.act { text-align: right; }
 <div id="toast"></div>
 
 <script>
-// ── CONFIG JSONBin ───────────────────────────────────────────
-let BIN_ID  = "69b2c926c3097a1dd51c8ed9";
-let API_KEY = "$2a$10$sIxUKUhDKyvNvhdedW2XX.rYODI2GsngOLf.XWGOWlFQEcrQrIRga";
-const BASE  = () => "https://api.jsonbin.io/v3/b/" + BIN_ID;
+// ── CREDENCIALES ─────────────────────────────────────────────
+const BIN_DATA  = "69b2c926c3097a1dd51c8ed9";
+const BIN_USERS = "69b2eb93aa77b81da9dc3836";
+const API_KEY   = "$2a$10$sIxUKUhDKyvNvhdedW2XX.rYODI2GsngOLf.XWGOWlFQEcrQrIRga";
+const HEADERS   = { "Content-Type": "application/json", "X-Master-Key": API_KEY };
+const BASE      = id => `https://api.jsonbin.io/v3/b/${id}`;
 
 // ── STATE ────────────────────────────────────────────────────
-const KEY_LOCAL = "bulkscan_v1";
-let registros = JSON.parse(localStorage.getItem(KEY_LOCAL) || "[]");
-let modo = "scan"; // "scan" | "qty"
+let registros = [];
+let sesion    = null;
+let modo      = "scan";
 let codigoActual = "";
 
 const $ = id => document.getElementById(id);
 
-// ── CLOUD ────────────────────────────────────────────────────
-async function cargarNube() {
-  if (!BIN_ID || !API_KEY) { setSyncPill("local", ""); render(); return; }
-  setSyncPill("Conectando…", "saving");
+// ── LOGIN ────────────────────────────────────────────────────
+async function intentarLogin() {
+  const user = $("loginUser").value.trim().toLowerCase();
+  const pass = $("loginPass").value;
+  if (!user || !pass) { $("loginErr").textContent = "Completa usuario y contraseña."; $("loginErr").classList.add("show"); return; }
+
+  $("btnLogin").disabled = true;
+  $("btnLogin").textContent = "Verificando…";
+  $("loginErr").classList.remove("show");
+
   try {
-    const r = await fetch(BASE() + "/latest", { headers: { "X-Master-Key": API_KEY } });
+    const r = await fetch(BASE(BIN_USERS) + "/latest", { headers: { "X-Master-Key": API_KEY } });
+    const d = await r.json();
+    const usuarios = d.record?.usuarios || [];
+    const encontrado = usuarios.find(u =>
+      u.username.toLowerCase() === user && u.password === pass && u.activo !== false
+    );
+    if (encontrado) {
+      sesion = { username: encontrado.username, nombre: encontrado.nombre, rol: encontrado.rol };
+      sessionStorage.setItem("bulk_sesion", JSON.stringify(sesion));
+      iniciarApp();
+    } else {
+      $("loginErr").textContent = "Usuario o contraseña incorrectos.";
+      $("loginErr").classList.add("show");
+      $("loginPass").value = ""; $("loginPass").focus();
+    }
+  } catch(e) {
+    $("loginErr").textContent = "Sin conexión. Verifica tu internet.";
+    $("loginErr").classList.add("show");
+  }
+  $("btnLogin").disabled = false;
+  $("btnLogin").textContent = "Ingresar";
+}
+
+function logout() {
+  sesion = null;
+  sessionStorage.removeItem("bulk_sesion");
+  $("app").style.display = "none";
+  $("loginScreen").style.display = "flex";
+  $("loginUser").value = ""; $("loginPass").value = "";
+  $("loginErr").classList.remove("show");
+  $("adminTabs").style.display = "none";
+  setTimeout(() => $("loginUser").focus(), 100);
+}
+
+// ── INICIAR APP ──────────────────────────────────────────────
+async function iniciarApp() {
+  $("loginScreen").style.display = "none";
+  $("app").style.display = "block";
+  $("userAvatar").textContent = sesion.nombre.charAt(0).toUpperCase();
+  $("userName").textContent   = sesion.nombre;
+  $("userRol").textContent    = sesion.rol === "admin" ? "Administrador" : "Usuario";
+  if (sesion.rol === "admin") $("adminTabs").style.display = "flex";
+  setTab("scan");
+  await cargarDatos();
+  setTimeout(() => $("inputScan").focus(), 200);
+}
+
+// ── CLOUD ────────────────────────────────────────────────────
+async function cargarDatos() {
+  setSyncPill("cargando…", "saving");
+  try {
+    const r = await fetch(BASE(BIN_DATA) + "/latest", { headers: { "X-Master-Key": API_KEY } });
     const d = await r.json();
     registros = d.record?.registros || [];
-    localStorage.setItem(KEY_LOCAL, JSON.stringify(registros));
     setSyncPill("✓ nube", "ok");
   } catch(e) {
+    registros = JSON.parse(localStorage.getItem("bulk_local") || "[]");
     setSyncPill("sin red", "err");
   }
   render();
 }
 
-async function guardarNube() {
-  localStorage.setItem(KEY_LOCAL, JSON.stringify(registros));
-  if (!BIN_ID || !API_KEY) return;
+async function guardarDatos() {
+  localStorage.setItem("bulk_local", JSON.stringify(registros));
   setSyncPill("guardando…", "saving");
   try {
-    await fetch(BASE(), {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "X-Master-Key": API_KEY },
-      body: JSON.stringify({ registros })
-    });
+    await fetch(BASE(BIN_DATA), { method: "PUT", headers: HEADERS, body: JSON.stringify({ registros }) });
     setSyncPill("✓ guardado", "ok");
-  } catch(e) {
-    setSyncPill("error al guardar", "err");
-  }
+  } catch(e) { setSyncPill("error al guardar", "err"); }
 }
 
 function setSyncPill(txt, cls) {
-  const p = $("syncPill");
-  p.textContent = txt;
+  const p = $("syncPill"); p.textContent = txt;
   p.className = "sync-pill" + (cls ? " " + cls : "");
 }
 
-// ── CONFIG MODAL ─────────────────────────────────────────────
-function openConfig() {
-  $("cfgBinId").value  = BIN_ID;
-  $("cfgApiKey").value = API_KEY;
-  $("configOverlay").classList.add("open");
-}
-function closeConfig() { $("configOverlay").classList.remove("open"); }
-function guardarConfig() {
-  BIN_ID  = $("cfgBinId").value.trim();
-  API_KEY = $("cfgApiKey").value.trim();
-  localStorage.setItem("bulk_bin_id",  BIN_ID);
-  localStorage.setItem("bulk_api_key", API_KEY);
-  closeConfig();
-  cargarNube();
-  toast("✓ JSONBin configurado");
+// ── TABS ─────────────────────────────────────────────────────
+function setTab(tab) {
+  ["scan","all","users"].forEach(t => {
+    const btn = $("tab" + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle("active", t === tab);
+    $("view" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? "block" : "none";
+  });
+  if (tab === "all")   renderAll($("searchAll").value);
+  if (tab === "users") renderUsers();
+  if (tab === "scan")  setTimeout(() => $("inputScan").focus(), 100);
 }
 
-// ── INPUT LOGIC ──────────────────────────────────────────────
-const inputScan = $("inputScan");
-const inputQty  = $("inputQty");
-
+// ── SCAN LOGIC ───────────────────────────────────────────────
 function setModo(m) {
   modo = m;
   if (m === "scan") {
     $("scanWrap").classList.remove("focused");
     $("qtyWrap").classList.remove("active-field");
-    $("step1").classList.add("active");
-    $("step2").classList.remove("active");
-    $("step3").classList.remove("active");
+    $("step1").classList.add("active"); $("step2").classList.remove("active"); $("step3").classList.remove("active");
     $("statusDot").classList.remove("waiting");
     $("statusLabel").textContent = "Listo — escanea un bulk";
-    inputScan.value = "";
-    setTimeout(() => inputScan.focus(), 50);
+    $("inputScan").value = "";
+    setTimeout(() => $("inputScan").focus(), 50);
   } else {
     $("qtyWrap").classList.add("active-field");
-    $("step1").classList.remove("active");
-    $("step2").classList.add("active");
-    $("step3").classList.remove("active");
+    $("step1").classList.remove("active"); $("step2").classList.add("active"); $("step3").classList.remove("active");
     $("statusDot").classList.add("waiting");
     $("statusLabel").textContent = "Escribe la cantidad de mazorcas";
-    inputQty.value = "";
-    setTimeout(() => inputQty.focus(), 50);
+    $("inputQty").value = "";
+    setTimeout(() => $("inputQty").focus(), 50);
   }
 }
 
-// SCAN: Enter (lector lo envía auto) → pasar a qty
-inputScan.addEventListener("focus", () => $("scanWrap").classList.add("focused"));
-inputScan.addEventListener("blur",  () => $("scanWrap").classList.remove("focused"));
-
-inputScan.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    const codigo = inputScan.value.trim();
-    if (!codigo) return;
-    codigoActual = codigo;
-    // Flash
-    $("scanWrap").classList.add("flash");
-    setTimeout(() => $("scanWrap").classList.remove("flash"), 350);
-    setModo("qty");
-    e.preventDefault();
-  }
+$("inputScan").addEventListener("focus", () => $("scanWrap").classList.add("focused"));
+$("inputScan").addEventListener("blur",  () => $("scanWrap").classList.remove("focused"));
+$("inputScan").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const codigo = $("inputScan").value.trim();
+  if (!codigo) return;
+  codigoActual = codigo;
+  $("scanWrap").classList.add("flash");
+  setTimeout(() => $("scanWrap").classList.remove("flash"), 350);
+  setModo("qty"); e.preventDefault();
 });
-
-// QTY: Enter → registrar y volver a scan
-inputQty.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    const qty = inputQty.value.trim();
-    if (!qty || isNaN(qty) || Number(qty) < 0) {
-      toast("⚠ Ingresa una cantidad válida");
-      inputQty.select();
-      return;
-    }
-    registrar(codigoActual, Number(qty));
-    // Flash step 3
-    $("step2").classList.remove("active");
-    $("step3").classList.add("active");
-    setTimeout(() => setModo("scan"), 400);
-    e.preventDefault();
-  }
-  if (e.key === "Escape") { setModo("scan"); }
+$("inputQty").addEventListener("keydown", e => {
+  if (e.key === "Escape") { setModo("scan"); return; }
+  if (e.key !== "Enter") return;
+  const qty = $("inputQty").value.trim();
+  if (!qty || isNaN(qty) || Number(qty) < 0) { toast("⚠ Ingresa una cantidad válida"); $("inputQty").select(); return; }
+  registrar(codigoActual, Number(qty));
+  $("step2").classList.remove("active"); $("step3").classList.add("active");
+  setTimeout(() => setModo("scan"), 400);
+  e.preventDefault();
 });
 
 // ── REGISTRAR ────────────────────────────────────────────────
 async function registrar(codigo, cantidad) {
   const now = new Date();
   const entry = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
-    codigo,
-    cantidad,
-    fecha: now.toLocaleDateString("es-ES", {day:"2-digit",month:"2-digit",year:"numeric"}),
-    hora:  now.toLocaleTimeString("es-ES"),
-    ts:    now.getTime()
+    id:      Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    codigo, cantidad,
+    usuario: sesion.username,
+    nombre:  sesion.nombre,
+    fecha:   now.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"}),
+    hora:    now.toLocaleTimeString("es-ES"),
+    ts:      now.getTime()
   };
   registros.push(entry);
-
-  // Mostrar último
   $("lastCode").textContent = entry.codigo;
   $("lastQty").textContent  = entry.cantidad.toLocaleString();
-  $("lastMeta").textContent = entry.fecha + " · " + entry.hora;
+  $("lastMeta").textContent = entry.fecha + " · " + entry.hora + " · " + entry.nombre;
   $("lastItem").classList.add("show");
-
-  updateStats();
-  renderTabla($("searchInput").value);
-  await guardarNube();
+  render(); await guardarDatos();
 }
 
 // ── RENDER ───────────────────────────────────────────────────
-function render() { renderTabla($("searchInput").value); updateStats(); }
+function render() { renderMios($("searchMio").value); updateStats(); }
 
-function renderTabla(q = "") {
-  const fil = registros.filter(r =>
-    !q || r.codigo.toLowerCase().includes(q.toLowerCase())
-  );
-  const tbody = $("tbody");
-  $("emptyState").style.display = fil.length ? "none" : "block";
-  if (!fil.length) { tbody.innerHTML = ""; return; }
+function misFiltro(q) {
+  return registros.filter(r => r.usuario === sesion?.username && (!q || r.codigo.toLowerCase().includes(q.toLowerCase())));
+}
 
-  tbody.innerHTML = [...fil].reverse().map((r, i) => `
-    <tr id="row-${r.id}" class="${i === 0 ? 'new-row' : ''}">
-      <td class="seq">${registros.indexOf(r) + 1}</td>
+function renderMios(q = "") {
+  const mios = misFiltro(q);
+  $("emptyState").style.display = mios.length ? "none" : "block";
+  $("tbody").innerHTML = mios.length ? [...mios].reverse().map((r,i) => `
+    <tr class="${i===0?'new-row':''}">
+      <td class="seq">${registros.indexOf(r)+1}</td>
       <td class="code" title="${r.codigo}">${r.codigo}</td>
       <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
       <td class="time">${r.hora}</td>
       <td class="act"><button class="btn-del" onclick="eliminar('${r.id}')">✕</button></td>
-    </tr>`).join("");
+    </tr>`).join("") : "";
+}
+
+function renderAll(q = "") {
+  const fil = registros.filter(r => !q || r.codigo.toLowerCase().includes(q.toLowerCase()) || (r.nombre||"").toLowerCase().includes(q.toLowerCase()));
+  $("emptyAll").style.display = fil.length ? "none" : "block";
+  $("tbodyAll").innerHTML = fil.length ? [...fil].reverse().map((r,i) => `
+    <tr>
+      <td class="seq">${registros.indexOf(r)+1}</td>
+      <td class="code" title="${r.codigo}">${r.codigo}</td>
+      <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
+      <td class="user">${r.nombre||r.usuario||"—"}</td>
+      <td class="time">${r.fecha}</td>
+      <td class="time">${r.hora}</td>
+      <td class="act"><button class="btn-del" onclick="eliminarAdmin('${r.id}')">✕</button></td>
+    </tr>`).join("") : "";
+}
+
+function renderUsers() {
+  const map = {};
+  registros.forEach(r => {
+    const u = r.usuario || "?";
+    if (!map[u]) map[u] = { nombre: r.nombre||u, bulks:0, mazorcas:0 };
+    map[u].bulks++; map[u].mazorcas += Number(r.cantidad)||0;
+  });
+  $("adminGrid").innerHTML = Object.keys(map).length
+    ? Object.entries(map).map(([u,d]) => `
+        <div class="user-card">
+          <div class="uc-avatar">${d.nombre.charAt(0).toUpperCase()}</div>
+          <div class="uc-name">${d.nombre}</div>
+          <div class="uc-user">@${u}</div>
+          <div class="uc-stats">${d.bulks} bulks · ${d.mazorcas.toLocaleString()} mazorcas</div>
+        </div>`).join("")
+    : `<p style="padding:24px;color:var(--muted);font-size:0.82rem;">No hay registros aún.</p>`;
 }
 
 function updateStats() {
-  const total = registros.length;
-  const maz   = registros.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
-  $("sBulks").textContent    = total;
+  const mios = misFiltro();
+  const maz  = mios.reduce((s,r)=>s+(Number(r.cantidad)||0),0);
+  $("sBulks").textContent    = mios.length;
   $("sMazorcas").textContent = maz.toLocaleString();
-  $("sPromedio").textContent = total ? (maz / total).toFixed(1) : "—";
+  $("sPromedio").textContent = mios.length ? (maz/mios.length).toFixed(1) : "—";
 }
 
 // ── ELIMINAR ─────────────────────────────────────────────────
 async function eliminar(id) {
-  registros = registros.filter(r => r.id !== id);
-  render();
-  await guardarNube();
-  toast("Registro eliminado");
+  registros = registros.filter(r=>r.id!==id);
+  render(); await guardarDatos(); toast("Registro eliminado");
 }
-
-async function limpiarTodo() {
-  if (!registros.length) { toast("No hay registros"); return; }
-  if (!confirm(`¿Borrar los ${registros.length} registros? No se puede deshacer.`)) return;
-  registros = [];
-  $("lastItem").classList.remove("show");
-  render();
-  await guardarNube();
-  toast("Todo limpiado");
+async function eliminarAdmin(id) {
+  if (!confirm("¿Eliminar este registro?")) return;
+  registros = registros.filter(r=>r.id!==id);
+  renderAll($("searchAll").value); await guardarDatos(); toast("Registro eliminado");
 }
 
 // ── EXPORT ───────────────────────────────────────────────────
-function exportCSV() {
-  if (!registros.length) { toast("No hay registros"); return; }
-  const cols = ["#","Código de Barras","Cantidad de Mazorcas","Fecha","Hora"];
-  const rows = registros.map((r, i) =>
-    [i+1, r.codigo, r.cantidad, r.fecha, r.hora]
-      .map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")
-  );
-  const csv = [cols.join(","), ...rows].join("\n");
+function exportCSV(todos) {
+  const datos = todos ? registros : misFiltro();
+  if (!datos.length) { toast("No hay registros"); return; }
+  const cols = todos ? ["#","Código","Mazorcas","Usuario","Nombre","Fecha","Hora"] : ["#","Código","Mazorcas","Fecha","Hora"];
+  const rows = datos.map((r,i) => {
+    const row = [i+1, r.codigo, r.cantidad];
+    if (todos) row.push(r.usuario||"", r.nombre||"");
+    row.push(r.fecha, r.hora);
+    return row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",");
+  });
   const a = document.createElement("a");
-  a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(csv);
-  a.download = "bulk_mazorcas_" + new Date().toISOString().slice(0,10) + ".csv";
-  a.click();
-  toast("CSV exportado ✓");
+  a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent([cols.join(","),...rows].join("\n"));
+  a.download = "bulk_"+(todos?"completo":"mis_registros")+"_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click(); toast("CSV exportado ✓");
 }
 
-function copiarSheets() {
-  if (!registros.length) { toast("No hay registros"); return; }
-  const hdr = ["#","Código de Barras","Cantidad de Mazorcas","Fecha","Hora"].join("\t");
-  const rows = registros.map((r,i) => [i+1, r.codigo, r.cantidad, r.fecha, r.hora].join("\t"));
-  const txt = [hdr, ...rows].join("\n");
-  navigator.clipboard.writeText(txt)
-    .then(() => toast("📋 Copiado — pega en Sheets con Ctrl+V"))
-    .catch(() => { toast("No se pudo copiar automáticamente"); });
+function copiarSheets(todos) {
+  const datos = todos ? registros : misFiltro();
+  if (!datos.length) { toast("No hay registros"); return; }
+  const hdr = (todos ? ["#","Código","Mazorcas","Usuario","Nombre","Fecha","Hora"] : ["#","Código","Mazorcas","Fecha","Hora"]).join("\t");
+  const rows = datos.map((r,i) => {
+    const row = [i+1, r.codigo, r.cantidad];
+    if (todos) row.push(r.usuario||"", r.nombre||"");
+    row.push(r.fecha, r.hora); return row.join("\t");
+  });
+  navigator.clipboard.writeText([hdr,...rows].join("\n"))
+    .then(()=>toast("📋 Copiado — pega en Sheets con Ctrl+V"))
+    .catch(()=>toast("No se pudo copiar"));
 }
 
 // ── TOAST ────────────────────────────────────────────────────
 function toast(msg) {
-  const t = $("toast");
-  t.textContent = msg; t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2500);
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
 }
 
-// ── SEARCH ───────────────────────────────────────────────────
-$("searchInput").addEventListener("input", e => renderTabla(e.target.value));
-$("configOverlay").addEventListener("click", e => { if (e.target === $("configOverlay")) closeConfig(); });
+// ── EVENTOS ──────────────────────────────────────────────────
+$("btnLogin").addEventListener("click", intentarLogin);
+$("loginPass").addEventListener("keydown", e=>{ if(e.key==="Enter") intentarLogin(); });
+$("loginUser").addEventListener("keydown", e=>{ if(e.key==="Enter") $("loginPass").focus(); });
+$("searchMio").addEventListener("input", e=>renderMios(e.target.value));
+$("searchAll").addEventListener("input", e=>renderAll(e.target.value));
 
 // ── INIT ─────────────────────────────────────────────────────
-cargarNube();
-setModo("scan");
+const sesionGuardada = sessionStorage.getItem("bulk_sesion");
+if (sesionGuardada) {
+  try { sesion = JSON.parse(sesionGuardada); iniciarApp(); }
+  catch(e) { logout(); }
+} else {
+  setTimeout(()=>$("loginUser").focus(), 100);
+}
 </script>
 </body>
 </html>
