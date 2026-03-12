@@ -347,6 +347,7 @@ td.act  { text-align: right; }
                 <button class="btn btn-primary"   style="background:#235c42;" onclick="exportCSV(false)">⬇ CSV</button>
               </div>
               <button class="btn btn-sheets" onclick="enviarASheets(false)">📤 Enviar mis registros a Sheets</button>
+              <button class="btn btn-danger" onclick="limpiarTodo()">⚠ Limpiar mis registros</button>
             </div>
           </div>
         </div>
@@ -736,20 +737,52 @@ async function enviarASheets(todos = true) {
   if (btn) { btn.disabled = true; btn.textContent = "Enviando…"; }
 
   try {
-    const resp = await fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors", // necesario para Apps Script desde GitHub Pages
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ registros: datos })
-    });
+    // Enviamos los datos como parámetro en la URL (GET)
+    // Apps Script acepta esto sin problemas de CORS
+    const payload = encodeURIComponent(JSON.stringify(datos));
+    const url = WEB_APP_URL + "?datos=" + payload;
 
-    // no-cors no devuelve body, así que asumimos éxito si no hay error
-    toast(`✅ Datos enviados a Google Sheets`);
+    const resp = await fetch(url, { method: "GET" });
+    const result = await resp.json();
+
+    if (result.ok) {
+      const msg = `✅ ${result.insertados} enviados, ${result.duplicados} duplicados ignorados` +
+                  (result.limpiados > 0 ? `, ${result.limpiados} duplicados limpiados` : "");
+      toast(msg);
+
+      // Si el envío fue exitoso, preguntar si limpiar la app
+      if (result.insertados > 0 || result.limpiados > 0) {
+        setTimeout(() => {
+          if (confirm(`✅ Datos enviados correctamente a Google Sheets.\n\n¿Deseas limpiar los registros de la app ahora?\n(Los datos ya están guardados en Sheets)`)) {
+            limpiarTodo(true); // true = sin confirmación adicional
+          }
+        }, 500);
+      }
+    } else {
+      toast("⚠️ " + (result.msg || "Error al enviar"));
+    }
   } catch(err) {
     toast("❌ Error al enviar: " + err.message);
   }
 
   if (btn) { btn.disabled = false; btn.textContent = "📤 Enviar a Sheets"; }
+}
+
+
+// ── LIMPIAR APP ──────────────────────────────────────────────
+async function limpiarTodo(silente = false) {
+  if (!silente) {
+    if (!confirm("¿Limpiar TODOS tus registros de la app?\n\nAsegúrate de haber enviado a Sheets primero.")) return;
+  }
+  // Eliminar solo los registros del usuario actual del JSONBin
+  const usuario = sesion?.username;
+  if (!usuario) return;
+  registros = registros.filter(r => r.usuario !== usuario);
+  await guardarNube();
+  renderMio();
+  renderAll();
+  actualizarStats();
+  toast("🗑 Registros limpiados correctamente");
 }
 
 function exportExcel(todos) {
