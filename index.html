@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BulkScan · Semilla Nueva</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Cabinet+Grotesk:wght@500;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -204,6 +205,38 @@ td.act  { text-align: right; }
 .uc-stats   { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent); margin-top: 4px; }
 
 /* TOAST */
+
+/* DATE FILTER */
+.date-filter {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.date-filter label { font-family: 'DM Mono', monospace; font-size: 0.62rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.date-filter input[type=date] {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+  padding: 5px 10px; font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  color: var(--text); outline: none;
+}
+.date-filter input[type=date]:focus { border-color: var(--accent); }
+.date-filter-btns { display: flex; gap: 6px; margin-left: auto; }
+.df-btn {
+  padding: 4px 10px; border-radius: 6px; font-family: 'DM Mono', monospace;
+  font-size: 0.65rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  transition: all 0.15s;
+}
+.df-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.df-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* SEND TO SHEETS BTN */
+.btn-sheets {
+  background: #1a7340; color: #fff;
+  box-shadow: 0 3px 10px rgba(26,115,64,0.25);
+}
+.btn-sheets:hover { background: #145c33; transform: translateY(-1px); }
+.btn-sheets:disabled { background: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
 #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--text); color: #fff; border-radius: 10px; padding: 10px 20px; font-family: 'DM Mono', monospace; font-size: 0.72rem; opacity: 0; transition: opacity 0.25s, transform 0.25s; z-index: 999; pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -309,8 +342,11 @@ td.act  { text-align: right; }
               <div class="stat"><div class="stat-n" id="sPromedio">—</div><div class="stat-l">Promedio</div></div>
             </div>
             <div class="actions">
-              <button class="btn btn-primary"   onclick="exportCSV(false)">⬇ Exportar mis registros CSV</button>
-              <button class="btn btn-secondary" onclick="copiarSheets(false)">📊 Copiar para Sheets</button>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button class="btn btn-primary"   onclick="exportExcel(false)">⬇ Excel</button>
+                <button class="btn btn-primary"   style="background:#235c42;" onclick="exportCSV(false)">⬇ CSV</button>
+              </div>
+              <button class="btn btn-sheets" onclick="enviarASheets(false)">📤 Enviar mis registros a Sheets</button>
             </div>
           </div>
         </div>
@@ -341,8 +377,20 @@ td.act  { text-align: right; }
         <div class="tbl-toolbar">
           <h2>Todos los registros</h2>
           <div class="search-wrap"><input id="searchAll" type="text" placeholder="Filtrar..."/></div>
-          <button class="btn btn-primary"   style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="exportCSV(true)">⬇ CSV completo</button>
-          <button class="btn btn-secondary" style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="copiarSheets(true)">📊 Copiar todo</button>
+          <button class="btn btn-sheets" style="width:auto;padding:7px 14px;font-size:0.75rem;" id="btnSendSheets" onclick="enviarASheets()">📤 Enviar a Sheets</button>
+          <button class="btn btn-primary"   style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="exportExcel(true)">⬇ Excel</button>
+          <button class="btn btn-primary"   style="width:auto;padding:7px 14px;font-size:0.75rem;background:#235c42;" onclick="exportCSV(true)">⬇ CSV</button>
+        </div>
+        <div class="date-filter">
+          <label>Desde</label>
+          <input type="date" id="fechaDesde" onchange="renderAll()"/>
+          <label>Hasta</label>
+          <input type="date" id="fechaHasta" onchange="renderAll()"/>
+          <div class="date-filter-btns">
+            <button class="df-btn" onclick="setFiltroFecha('hoy')">Hoy</button>
+            <button class="df-btn" onclick="setFiltroFecha('semana')">Esta semana</button>
+            <button class="df-btn" onclick="setFiltroFecha('todo')">Todo</button>
+          </div>
         </div>
         <div class="tbl-wrap">
           <table>
@@ -378,6 +426,7 @@ const BIN_DATA  = "69b2c926c3097a1dd51c8ed9";
 const BIN_USERS = "69b2eb93aa77b81da9dc3836";
 const API_KEY   = "$2a$10$sIxUKUhDKyvNvhdedW2XX.rYODI2GsngOLf.XWGOWlFQEcrQrIRga";
 const HEADERS   = { "Content-Type": "application/json", "X-Master-Key": API_KEY };
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2wGw4Ybxxy7qFyc8Ei9ZWC8u9MjsPK5oga5m-HnDzT4GCodUJ4CDIb7MhCFsNqwcc/exec";
 const BASE      = id => `https://api.jsonbin.io/v3/b/${id}`;
 
 // ── STATE ────────────────────────────────────────────────────
@@ -623,6 +672,149 @@ async function eliminarAdmin(id) {
 }
 
 // ── EXPORT ───────────────────────────────────────────────────
+
+
+// ── FILTRO DE FECHA ──────────────────────────────────────────
+function parseFechaES(str) {
+  // "dd/mm/yyyy" → Date
+  if (!str) return null;
+  const p = str.split("/");
+  if (p.length !== 3) return null;
+  return new Date(p[2], p[1]-1, p[0]);
+}
+
+function setFiltroFecha(rango) {
+  const hoy = new Date();
+  const pad = n => String(n).padStart(2,"0");
+  const toInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+  if (rango === "hoy") {
+    document.getElementById("fechaDesde").value = toInput(hoy);
+    document.getElementById("fechaHasta").value = toInput(hoy);
+  } else if (rango === "semana") {
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - hoy.getDay() + 1);
+    document.getElementById("fechaDesde").value = toInput(lunes);
+    document.getElementById("fechaHasta").value = toInput(hoy);
+  } else {
+    document.getElementById("fechaDesde").value = "";
+    document.getElementById("fechaHasta").value = "";
+  }
+  renderAll();
+}
+
+function filtrarPorFecha(datos) {
+  const desde = document.getElementById("fechaDesde")?.value;
+  const hasta = document.getElementById("fechaHasta")?.value;
+  if (!desde && !hasta) return datos;
+  return datos.filter(r => {
+    const fd = parseFechaES(r.fecha);
+    if (!fd) return true;
+    if (desde) {
+      const d = new Date(desde + "T00:00:00");
+      if (fd < d) return false;
+    }
+    if (hasta) {
+      const h = new Date(hasta + "T23:59:59");
+      if (fd > h) return false;
+    }
+    return true;
+  });
+}
+
+// ── ENVIAR A SHEETS ──────────────────────────────────────────
+async function enviarASheets(todos = true) {
+  if (WEB_APP_URL === "PEGA_AQUI_LA_URL_DEL_WEB_APP") {
+    toast("⚠ Configura la URL del Web App primero"); return;
+  }
+
+  const datos = todos ? registros : misFiltro();
+  if (!datos.length) { toast("No hay registros para enviar"); return; }
+
+  const btnId = todos ? "btnSendSheets" : null;
+  const btn = btnId ? document.getElementById(btnId) : null;
+  if (btn) { btn.disabled = true; btn.textContent = "Enviando…"; }
+
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors", // necesario para Apps Script desde GitHub Pages
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registros: datos })
+    });
+
+    // no-cors no devuelve body, así que asumimos éxito si no hay error
+    toast(`✅ Datos enviados a Google Sheets`);
+  } catch(err) {
+    toast("❌ Error al enviar: " + err.message);
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = "📤 Enviar a Sheets"; }
+}
+
+function exportExcel(todos) {
+  const datos = todos ? registros : misFiltro();
+  if (!datos.length) { toast("No hay registros"); return; }
+
+  const cols = todos
+    ? ["#","Código de Barras","Mazorcas","Usuario","Nombre","Fecha","Hora"]
+    : ["#","Código de Barras","Mazorcas","Fecha","Hora"];
+
+  const rows = datos.map((r,i) => {
+    const row = [i+1, r.codigo, Number(r.cantidad)];
+    if (todos) row.push(r.usuario||"", r.nombre||"");
+    row.push(r.fecha, r.hora);
+    return row;
+  });
+
+  const wsData = [cols, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  ws['!cols'] = todos
+    ? [{wch:5},{wch:30},{wch:14},{wch:16},{wch:20},{wch:12},{wch:10}]
+    : [{wch:5},{wch:30},{wch:14},{wch:12},{wch:10}];
+
+  // Header row style (row 0)
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; C++) {
+    const cellAddr = XLSX.utils.encode_cell({r:0, c:C});
+    if (!ws[cellAddr]) continue;
+    ws[cellAddr].s = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "2D6A4F" } },
+      alignment: { horizontal: "center" }
+    };
+  }
+
+  // Qty column — right align numbers
+  const qtyCol = todos ? 2 : 2;
+  for (let R = 1; R <= rows.length; R++) {
+    const cellAddr = XLSX.utils.encode_cell({r:R, c:qtyCol});
+    if (ws[cellAddr]) ws[cellAddr].s = { alignment: { horizontal: "right" } };
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Registros");
+
+  // Add summary sheet
+  const resumen = [
+    ["Reporte BulkScan — Semilla Nueva"],
+    [""],
+    ["Total bulks", datos.length],
+    ["Total mazorcas", datos.reduce((s,r)=>s+Number(r.cantidad||0),0)],
+    ["Promedio por bulk", datos.length ? (datos.reduce((s,r)=>s+Number(r.cantidad||0),0)/datos.length).toFixed(1) : 0],
+    ["Generado", new Date().toLocaleString("es-ES")],
+  ];
+  const wsR = XLSX.utils.aoa_to_sheet(resumen);
+  wsR['!cols'] = [{wch:22},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsR, "Resumen");
+
+  const filename = "bulk_"+(todos?"completo":"mis_registros")+"_"+new Date().toISOString().slice(0,10)+".xlsx";
+  XLSX.writeFile(wb, filename);
+  toast("Excel exportado ✓");
+}
+
 function exportCSV(todos) {
   const datos = todos ? registros : misFiltro();
   if (!datos.length) { toast("No hay registros"); return; }
