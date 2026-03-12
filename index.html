@@ -778,7 +778,7 @@ async function limpiarTodo(silente = false) {
   const usuario = sesion?.username;
   if (!usuario) return;
   registros = registros.filter(r => r.usuario !== usuario);
-  await guardarNube();
+  await guardarDatos();
   render();
   renderAll();
   updateStats();
