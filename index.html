@@ -307,6 +307,7 @@ td.act  { text-align: right; }
     <button class="tab active" id="tabScan"  onclick="setTab('scan')">🌽 Escanear</button>
     <button class="tab"        id="tabAll"   onclick="setTab('all')">📋 Todos los registros</button>
     <button class="tab"        id="tabUsers" onclick="setTab('users')">👥 Usuarios</button>
+    <button class="tab"        id="tabHist"  onclick="setTab('hist')">🗄️ Historial</button>
   </div>
 
   <!-- SCAN VIEW -->
@@ -412,6 +413,31 @@ td.act  { text-align: right; }
     </div>
   </div>
 
+  <!-- HISTORIAL VIEW (solo Ronald) -->
+  <div id="viewHist" style="display:none;">
+    <div class="wrap full">
+      <div class="tbl-card">
+        <div class="tbl-toolbar">
+          <h2>🗄️ Historial permanente</h2>
+          <div class="search-wrap"><input id="searchHist" type="text" placeholder="Filtrar..."/></div>
+          <button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="exportExcelHistorial()">⬇ Excel</button>
+          <button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:0.75rem;background:#235c42;" onclick="exportCSVHistorial()">⬇ CSV</button>
+          <button class="btn btn-danger"  style="width:auto;padding:7px 14px;font-size:0.75rem;" onclick="limpiarHistorial()">🗑 Limpiar historial</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Obs Unit ID</th><th>Plot Code</th><th>Mazorcas</th><th>Registrado por</th><th>Fecha</th><th>Hora</th><th></th></tr></thead>
+            <tbody id="tbodyHist"></tbody>
+          </table>
+          <div class="empty-state" id="emptyHist">
+            <div class="empty-icon">🗄️</div>
+            <div class="empty-txt">El historial está vacío.<br/>Se llena automáticamente con cada escaneo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- USERS VIEW (admin) -->
   <div id="viewUsers" style="display:none;">
     <div class="wrap full">
@@ -429,7 +455,8 @@ td.act  { text-align: right; }
 
 <script>
 // ── CREDENCIALES ─────────────────────────────────────────────
-const BIN_DATA  = "69b2c926c3097a1dd51c8ed9";
+const BIN_DATA     = "69b2c926c3097a1dd51c8ed9";
+const BIN_HISTORIAL = "69b33f7eb7ec241ddc637ca4"; // historial permanente Ronald
 const BIN_USERS = "69b2eb93aa77b81da9dc3836";
 const API_KEY   = "$2a$10$sIxUKUhDKyvNvhdedW2XX.rYODI2GsngOLf.XWGOWlFQEcrQrIRga";
 const HEADERS   = { "Content-Type": "application/json", "X-Master-Key": API_KEY };
@@ -527,6 +554,31 @@ async function guardarDatos() {
   } catch(e) { setSyncPill("error al guardar", "err"); }
 }
 
+
+// ── HISTORIAL PERMANENTE (Ronald) ────────────────────────────
+// Copia el registro al BIN de historial — nunca se borra
+async function guardarEnHistorial(entry) {
+  try {
+    // Leer historial actual
+    const r = await fetch(BASE(BIN_HISTORIAL) + "/latest", { headers: { "X-Master-Key": API_KEY } });
+    const d = await r.json();
+    const historial = d.record?.historial || [];
+
+    // Evitar duplicados por ID
+    if (historial.some(h => h.id === entry.id)) return;
+
+    historial.push(entry);
+
+    await fetch(BASE(BIN_HISTORIAL), {
+      method: "PUT", headers: HEADERS,
+      body: JSON.stringify({ historial })
+    });
+  } catch(e) {
+    // Falla silenciosa — no interrumpe el flujo de escaneo
+    console.warn("No se pudo guardar en historial:", e);
+  }
+}
+
 function setSyncPill(txt, cls) {
   const p = $("syncPill"); p.textContent = txt;
   p.className = "sync-pill" + (cls ? " " + cls : "");
@@ -534,13 +586,14 @@ function setSyncPill(txt, cls) {
 
 // ── TABS ─────────────────────────────────────────────────────
 function setTab(tab) {
-  ["scan","all","users"].forEach(t => {
+  ["scan","all","users","hist"].forEach(t => {
     const btn = $("tab" + t.charAt(0).toUpperCase() + t.slice(1));
     if (btn) btn.classList.toggle("active", t === tab);
     $("view" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? "block" : "none";
   });
   if (tab === "all")   renderAll($("searchAll").value);
   if (tab === "users") renderUsers();
+  if (tab === "hist")  renderHistorial($("searchHist").value);
   if (tab === "scan")  setTimeout(() => $("inputScan").focus(), 100);
 }
 
@@ -621,6 +674,7 @@ async function registrar(codigo, plot, cantidad) {
     ts:      now.getTime()
   };
   registros.push(entry);
+  guardarEnHistorial(entry); // copia al historial permanente de Ronald
   $("lastCode").textContent = entry.codigo + "  /  " + entry.plot;
   $("lastQty").textContent  = entry.cantidad.toLocaleString();
   $("lastMeta").textContent = entry.fecha + " · " + entry.hora + " · " + entry.nombre;
@@ -661,7 +715,7 @@ function renderAll(q = "") {
       <td class="user">${r.nombre||r.usuario||"—"}</td>
       <td class="time">${r.fecha}</td>
       <td class="time">${r.hora}</td>
-      <td class="act"><button class="btn-del" onclick="eliminarAdmin('${r.id}')">✕</button></td>
+      <td class="act">${r.usuario === sesion?.username ? `<button class="btn-del" onclick="eliminarAdmin('${r.id}')">✕</button>` : ""}</td>
     </tr>`).join("") : "";
 }
 
@@ -775,14 +829,6 @@ async function enviarASheets(todos = true) {
       const msg = `✅ ${result.insertados} enviados, ${result.duplicados} duplicados ignorados` +
                   (result.limpiados > 0 ? `, ${result.limpiados} duplicados limpiados` : "");
       toast(msg);
-
-      if (result.insertados > 0 || result.limpiados > 0) {
-        setTimeout(() => {
-          if (confirm(`✅ Datos enviados correctamente a Google Sheets.\n\n¿Deseas limpiar los registros de la app ahora?\n(Los datos ya están guardados en Sheets)`)) {
-            limpiarTodo(true);
-          }
-        }, 500);
-      }
     } else {
       toast("⚠️ " + (result.msg || "Error al enviar"));
     }
@@ -916,6 +962,90 @@ function copiarSheets(todos) {
     .then(()=>toast("📋 Copiado — pega en Sheets con Ctrl+V"))
     .catch(()=>toast("No se pudo copiar"));
 }
+
+
+// ── HISTORIAL RENDER ─────────────────────────────────────────
+let historialData = [];
+
+async function cargarHistorial() {
+  try {
+    const r = await fetch(BASE(BIN_HISTORIAL) + "/latest", { headers: { "X-Master-Key": API_KEY } });
+    const d = await r.json();
+    historialData = d.record?.historial || [];
+  } catch(e) { historialData = []; }
+}
+
+async function renderHistorial(q = "") {
+  if (!historialData.length) await cargarHistorial();
+  const fil = historialData.filter(r =>
+    !q ||
+    (r.codigo||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.plot||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.nombre||"").toLowerCase().includes(q.toLowerCase())
+  );
+  $("emptyHist").style.display = fil.length ? "none" : "block";
+  $("tbodyHist").innerHTML = fil.length
+    ? [...fil].reverse().map((r,i) => `
+      <tr>
+        <td class="seq">${fil.length - i}</td>
+        <td class="code" title="${r.codigo}">${r.codigo}</td>
+        <td class="code" title="${r.plot||''}">${r.plot||'—'}</td>
+        <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
+        <td class="user">${r.nombre||r.usuario||'—'}</td>
+        <td class="time">${r.fecha}</td>
+        <td class="time">${r.hora}</td>
+        <td class="act"><button class="btn-del" onclick="eliminarHistorial('${r.id}')">✕</button></td>
+      </tr>`).join("")
+    : "";
+}
+
+
+async function eliminarHistorial(id) {
+  historialData = historialData.filter(r => r.id !== id);
+  await fetch(BASE(BIN_HISTORIAL), {
+    method: "PUT", headers: HEADERS,
+    body: JSON.stringify({ historial: historialData })
+  });
+  renderHistorial($("searchHist").value);
+  toast("Registro eliminado del historial");
+}
+
+async function limpiarHistorial() {
+  if (!confirm("¿Limpiar TODO el historial permanente?\n\nEsto no se puede deshacer.\nSe recomienda exportar primero.")) return;
+  historialData = [];
+  await fetch(BASE(BIN_HISTORIAL), {
+    method: "PUT", headers: HEADERS,
+    body: JSON.stringify({ historial: [] })
+  });
+  renderHistorial();
+  toast("🗑 Historial limpiado");
+}
+
+function exportExcelHistorial() {
+  if (!historialData.length) { toast("No hay datos en el historial"); return; }
+  const cols = ["#","Obs Unit ID","Plot Code","Mazorcas","Registrado por","Fecha","Hora"];
+  const rows = historialData.map((r,i) => [i+1, r.codigo, r.plot||"", Number(r.cantidad), r.nombre||r.usuario||"", r.fecha, r.hora]);
+  const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
+  ws["!cols"] = [{wch:5},{wch:30},{wch:25},{wch:12},{wch:20},{wch:12},{wch:10}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Historial");
+  XLSX.writeFile(wb, "historial_ronald_"+new Date().toISOString().slice(0,10)+".xlsx");
+  toast("Excel exportado ✓");
+}
+
+function exportCSVHistorial() {
+  if (!historialData.length) { toast("No hay datos en el historial"); return; }
+  const cols = ["#","Obs Unit ID","Plot Code","Mazorcas","Registrado por","Fecha","Hora"];
+  const rows = historialData.map((r,i) => [i+1, r.codigo, r.plot||"", r.cantidad, r.nombre||r.usuario||"", r.fecha, r.hora]
+    .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent([cols.join(","),...rows].join("
+"));
+  a.download = "historial_ronald_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click(); toast("CSV exportado ✓");
+}
+
+$("searchHist")?.addEventListener("input", e => renderHistorial(e.target.value));
 
 // ── TOAST ────────────────────────────────────────────────────
 function toast(msg) {
