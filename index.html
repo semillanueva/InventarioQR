@@ -534,9 +534,14 @@ async function iniciarApp() {
 async function cargarDatos() {
   setSyncPill("cargando…", "saving");
   try {
-    const r = await fetch(BASE(BIN_DATA) + "/latest", { headers: { "X-Master-Key": API_KEY } });
-    const d = await r.json();
-    registros = d.record?.registros || [];
+    const [rData, rHist] = await Promise.all([
+      fetch(BASE(BIN_DATA)     + "/latest", { headers: { "X-Master-Key": API_KEY } }),
+      fetch(BASE(BIN_HISTORIAL)+ "/latest", { headers: { "X-Master-Key": API_KEY } })
+    ]);
+    const dData = await rData.json();
+    const dHist = await rHist.json();
+    registros    = dData.record?.registros || [];
+    historialData = dHist.record?.historial || [];
     setSyncPill("✓ nube", "ok");
   } catch(e) {
     registros = JSON.parse(localStorage.getItem("bulk_local") || "[]");
@@ -704,19 +709,51 @@ function renderMios(q = "") {
 }
 
 function renderAll(q = "") {
-  const fil = registros.filter(r => !q || r.codigo.toLowerCase().includes(q.toLowerCase()) || (r.nombre||"").toLowerCase().includes(q.toLowerCase()));
+  // Usa historialData (permanente) — no se borra aunque usuarios limpien sus registros
+  let base = [...historialData].reverse();
+
+  // Filtro de fecha
+  const desde = $("fechaDesde")?.value;
+  const hasta = $("fechaHasta")?.value;
+  if (desde) base = base.filter(r => r.fecha >= fechaDisplayToISO(desde) || r.fechaISO >= desde);
+  if (hasta) base = base.filter(r => r.fecha <= fechaDisplayToISO(hasta) || r.fechaISO <= hasta);
+
+  const fil = base.filter(r => !q ||
+    (r.codigo||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.nombre||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.plot||"").toLowerCase().includes(q.toLowerCase())
+  );
   $("emptyAll").style.display = fil.length ? "none" : "block";
-  $("tbodyAll").innerHTML = fil.length ? [...fil].reverse().map((r,i) => `
+  $("tbodyAll").innerHTML = fil.length ? fil.map((r,i) => `
     <tr>
-      <td class="seq">${registros.indexOf(r)+1}</td>
+      <td class="seq">${i+1}</td>
       <td class="code" title="${r.codigo}">${r.codigo}</td>
       <td class="code" title="${r.plot||''}">${r.plot||'—'}</td>
       <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
       <td class="user">${r.nombre||r.usuario||"—"}</td>
       <td class="time">${r.fecha}</td>
       <td class="time">${r.hora}</td>
-      <td class="act">${r.usuario === sesion?.username ? `<button class="btn-del" onclick="eliminarAdmin('${r.id}')">✕</button>` : ""}</td>
+      <td class="act"><button class="btn-del" onclick="eliminarDeAll('${r.id}')">✕</button></td>
     </tr>`).join("") : "";
+}
+
+// Convierte dd/mm/aaaa → aaaa-mm-dd para comparar con fechas ISO
+function fechaDisplayToISO(d) {
+  if (!d) return "";
+  const parts = d.split("/");
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  return d; // ya viene en formato date input (aaaa-mm-dd)
+}
+
+async function eliminarDeAll(id) {
+  // Solo elimina del historial permanente
+  historialData = historialData.filter(r => r.id !== id);
+  await fetch(BASE(BIN_HISTORIAL), {
+    method: "PUT", headers: HEADERS,
+    body: JSON.stringify({ historial: historialData })
+  });
+  renderAll($("searchAll").value);
+  toast("Registro eliminado del historial");
 }
 
 function renderUsers() {
