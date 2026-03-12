@@ -1039,8 +1039,7 @@ function exportCSVHistorial() {
   const rows = historialData.map((r,i) => [i+1, r.codigo, r.plot||"", r.cantidad, r.nombre||r.usuario||"", r.fecha, r.hora]
     .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
   const a = document.createElement("a");
-  a.href = "data:text/csv;charset=utf-8,﻿" + encodeURIComponent([cols.join(","),...rows].join("
-"));
+  a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent([cols.join(","),...rows].join("\n"));
   a.download = "historial_ronald_"+new Date().toISOString().slice(0,10)+".csv";
   a.click(); toast("CSV exportado ✓");
 }
