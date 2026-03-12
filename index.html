@@ -779,9 +779,9 @@ async function limpiarTodo(silente = false) {
   if (!usuario) return;
   registros = registros.filter(r => r.usuario !== usuario);
   await guardarNube();
-  renderMio();
+  render();
   renderAll();
-  actualizarStats();
+  updateStats();
   toast("🗑 Registros limpiados correctamente");
 }
 
