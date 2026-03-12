@@ -767,24 +767,19 @@ async function enviarASheets(todos = true) {
   if (btn) { btn.disabled = true; btn.textContent = "Enviando…"; }
 
   try {
-    // Enviamos los datos como parámetro en la URL (GET)
-    // Apps Script acepta esto sin problemas de CORS
-    const payload = encodeURIComponent(JSON.stringify(datos));
-    const url = WEB_APP_URL + "?datos=" + payload;
-
-    const resp = await fetch(url, { method: "GET" });
-    const result = await resp.json();
+    // Usamos fetch con mode no-cors + POST via form-encoded
+    // Para leer la respuesta usamos un iframe oculto como receptor
+    const result = await enviarConIframe(datos);
 
     if (result.ok) {
       const msg = `✅ ${result.insertados} enviados, ${result.duplicados} duplicados ignorados` +
                   (result.limpiados > 0 ? `, ${result.limpiados} duplicados limpiados` : "");
       toast(msg);
 
-      // Si el envío fue exitoso, preguntar si limpiar la app
       if (result.insertados > 0 || result.limpiados > 0) {
         setTimeout(() => {
           if (confirm(`✅ Datos enviados correctamente a Google Sheets.\n\n¿Deseas limpiar los registros de la app ahora?\n(Los datos ya están guardados en Sheets)`)) {
-            limpiarTodo(true); // true = sin confirmación adicional
+            limpiarTodo(true);
           }
         }, 500);
       }
@@ -798,6 +793,20 @@ async function enviarASheets(todos = true) {
   if (btn) { btn.disabled = false; btn.textContent = "📤 Enviar a Sheets"; }
 }
 
+
+
+// ── HELPER: enviar via fetch con CORS proxy ──────────────────
+// Apps Script permite CORS si se configura correctamente en doGet
+async function enviarConIframe(datos) {
+  // Intentar primero con fetch normal (funciona si el script tiene CORS headers)
+  const resp = await fetch(WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ registros: datos })
+  });
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  return await resp.json();
+}
 
 // ── LIMPIAR APP ──────────────────────────────────────────────
 async function limpiarTodo(silente = false) {
