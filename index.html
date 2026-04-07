@@ -28,6 +28,54 @@ body::before {
   pointer-events: none; z-index: 0;
 }
 
+
+/* SCAN SUB-TABS */
+/* scan-subtabs moved to header-nav */
+
+.tipo-badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:0.67rem; font-weight:700; }
+.tipo-mazorca { background:#dcfce7; color:#166534; }
+.tipo-muestra { background:#ede9fe; color:#5b21b6; }
+
+
+/* EDIT MODAL */
+.edit-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 300;
+  align-items: center; justify-content: center; padding: 16px;
+}
+.edit-overlay.active { display: flex; }
+.edit-modal {
+  background: white; border-radius: 18px; padding: 26px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.edit-modal h3 { font-size: 0.95rem; font-weight: 800; color: var(--text); margin-bottom: 18px; }
+.edit-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.edit-field label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.edit-field input {
+  border: 2px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; font-size: 0.88rem; font-family: 'DM Mono', monospace;
+  outline: none; transition: border-color 0.15s;
+}
+.edit-field input:focus { border-color: var(--accent); }
+.edit-btns { display: flex; gap: 8px; margin-top: 20px; }
+.edit-btns .btn-cancel-sm {
+  flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+  background: white; color: var(--muted); font-size: 0.84rem; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
+.edit-btns .btn-save-sm {
+  flex: 2; padding: 10px; border-radius: 10px; border: none;
+  background: var(--accent); color: white; font-size: 0.84rem; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.btn-edit-row {
+  padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border);
+  background: white; color: var(--accent); font-size: 0.7rem; font-weight: 700;
+  cursor: pointer; margin-right: 4px;
+}
+.btn-edit-row:hover { background: #eaf7f0; }
+
 /* LOGIN */
 #loginScreen {
   position: fixed; inset: 0; z-index: 500;
@@ -79,10 +127,47 @@ body::before {
 /* HEADER */
 header {
   position: sticky; top: 0; z-index: 50; background: var(--accent);
-  padding: 0 24px; height: 60px;
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 0;
+  display: flex; flex-direction: column;
   box-shadow: 0 2px 16px rgba(45,106,79,0.25);
 }
+.header-top {
+  padding: 0 24px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-nav {
+  display: flex; align-items: stretch;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 0 16px;
+  background: rgba(0,0,0,0.12);
+  min-height: 42px;
+}
+.header-nav .tab {
+  padding: 0 20px; height: 42px;
+  border-radius: 0; border: none; border-bottom: 3px solid transparent;
+  background: transparent; color: rgba(255,255,255,0.6);
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  display: flex; align-items: center; gap: 6px;
+}
+.header-nav .tab:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.06); }
+.header-nav .tab.active { color: #fff; border-bottom: 3px solid var(--accent2); }
+.header-nav .sep {
+  width: 1px; background: rgba(255,255,255,0.12); margin: 8px 4px;
+}
+.header-nav .nav-subtabs {
+  display: flex; align-items: stretch; margin-left: 4px;
+}
+.header-nav .subtab {
+  padding: 0 18px; height: 42px;
+  border-radius: 0; border: none; border-bottom: 3px solid transparent;
+  background: transparent; color: rgba(255,255,255,0.5);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  display: flex; align-items: center; gap: 5px;
+}
+.header-nav .subtab:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); }
+.header-nav .subtab.active { color: #fff; border-bottom: 3px solid #a7f3c8; background: rgba(255,255,255,0.06); }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-mark { width: 34px; height: 34px; background: var(--accent2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
 .logo-name { font-size: 1rem; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
@@ -274,104 +359,190 @@ td.act  { text-align: right; }
 <!-- APP -->
 <div id="app" style="display:none;">
   <header>
-    <div class="logo">
-      <div class="logo-mark">
-        <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="46" stroke="white" stroke-width="6" fill="none"/>
-          <path d="M50 80 Q50 55 50 40" stroke="white" stroke-width="5" stroke-linecap="round"/>
-          <path d="M50 55 Q35 48 28 35 Q42 32 50 45" fill="white" opacity="0.9"/>
-          <path d="M50 48 Q65 40 72 27 Q58 25 50 38" fill="white" opacity="0.75"/>
-          <path d="M50 62 Q38 58 32 48 Q44 46 50 57" fill="white" opacity="0.6"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-name">BulkScan</div>
-        <div class="logo-sub">Inventario de Mazorcas</div>
-      </div>
-    </div>
-    <div class="hright">
-      <span class="sync-pill" id="syncPill">⬤ conectando…</span>
-      <div class="user-chip">
-        <div class="user-avatar" id="userAvatar">?</div>
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" stroke="white" stroke-width="6" fill="none"/>
+            <path d="M50 80 Q50 55 50 40" stroke="white" stroke-width="5" stroke-linecap="round"/>
+            <path d="M50 55 Q35 48 28 35 Q42 32 50 45" fill="white" opacity="0.9"/>
+            <path d="M50 48 Q65 40 72 27 Q58 25 50 38" fill="white" opacity="0.75"/>
+            <path d="M50 62 Q38 58 32 48 Q44 46 50 57" fill="white" opacity="0.6"/>
+          </svg>
+        </div>
         <div>
-          <div class="user-name" id="userName">—</div>
-          <div class="user-rol"  id="userRol">—</div>
+          <div class="logo-name">BulkScan</div>
+          <div class="logo-sub">Inventario de Mazorcas</div>
         </div>
       </div>
-      <button class="btn-logout" onclick="logout()">Salir</button>
+      <div class="hright">
+        <span class="sync-pill" id="syncPill">⬤ conectando…</span>
+        <div class="user-chip">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div>
+            <div class="user-name" id="userName">—</div>
+            <div class="user-rol"  id="userRol">—</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Salir</button>
+      </div>
     </div>
+    <!-- Nav bar: tabs admin + sub-tabs siempre visibles -->
+    <nav class="header-nav" id="headerNav">
+      <!-- Sub-tabs siempre visibles (para todos los usuarios) -->
+      <div class="nav-subtabs" id="navSubtabs">
+        <button class="subtab active" id="subtabMazorcas" onclick="setScanMode('mazorcas')">🌽 Escaneo Mazorca</button>
+        <button class="subtab"        id="subtabPlacas"   onclick="setScanMode('placas')">🔬 Escaneo Mazorcas Muestras</button>
+      </div>
+      <!-- Separador + tabs admin -->
+      <div class="sep" id="navSep" style="display:none;"></div>
+      <div id="adminTabs" style="display:none; align-items:stretch; gap:0;">
+        <button class="tab active" id="tabScan"  onclick="setTab('scan')">🌽 Escanear</button>
+        <button class="tab"        id="tabAll"   onclick="setTab('all')">📋 Todos los registros</button>
+        <button class="tab"        id="tabUsers" onclick="setTab('users')">👥 Usuarios</button>
+        <button class="tab"        id="tabHist"  onclick="setTab('hist')">🗄️ Historial</button>
+      </div>
+    </nav>
   </header>
-
-  <!-- Tabs solo admin -->
-  <div class="tabs" id="adminTabs" style="display:none;">
-    <button class="tab active" id="tabScan"  onclick="setTab('scan')">🌽 Escanear</button>
-    <button class="tab"        id="tabAll"   onclick="setTab('all')">📋 Todos los registros</button>
-    <button class="tab"        id="tabUsers" onclick="setTab('users')">👥 Usuarios</button>
-    <button class="tab"        id="tabHist"  onclick="setTab('hist')">🗄️ Historial</button>
-  </div>
 
   <!-- SCAN VIEW -->
   <div id="viewScan">
-    <div class="wrap">
-      <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="card">
-          <div class="card-head">
-            <div class="status-dot" id="statusDot"></div>
-            <h2 id="statusLabel">Listo — escanea un bulk</h2>
-          </div>
-          <div class="card-body">
-            <div class="field-wrap" id="scanWrap">
-              <div class="field-tag">① Obs Unit ID</div>
-              <input id="inputScan" class="scan-input" type="text" placeholder="Escanea Obs Unit ID..." autocomplete="off" autofocus/>
+
+    <!-- PANEL MAZORCAS -->
+    <div id="panelMazorcas">
+      <div class="wrap">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-head">
+              <div class="status-dot" id="statusDot"></div>
+              <h2 id="statusLabel">Listo — escanea un bulk</h2>
             </div>
-            <div class="qty-wrap" id="plotWrap">
-              <div class="qty-tag" style="color:#1a5c8a;">② Plot Code</div>
-              <input id="inputPlot" class="qty-input" type="text" placeholder="Escanea Plot Code..." style="caret-color:#1a5c8a;"/>
-            </div>
-            <div class="qty-wrap" id="qtyWrap">
-              <div class="qty-tag">③ Cantidad de mazorcas</div>
-              <input id="inputQty" class="qty-input" type="number" min="0" placeholder="Ej: 47"/>
-            </div>
-            <div class="steps">
-              <div class="step active" id="step1"><div class="step-num">①</div><div class="step-lbl">Obs Unit ID</div></div>
-              <div class="step"        id="step2"><div class="step-num">②</div><div class="step-lbl">Plot Code</div></div>
-              <div class="step"        id="step3"><div class="step-num">③</div><div class="step-lbl">Cantidad</div></div>
-              <div class="step"        id="step4"><div class="step-num">✓</div><div class="step-lbl">Guardado</div></div>
-            </div>
-            <div class="last-item" id="lastItem">
-              <div class="last-code" id="lastCode">—</div>
-              <div class="last-qty"><span id="lastQty">—</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted)">mazorcas</span></div>
-              <div class="last-meta" id="lastMeta">—</div>
-            </div>
-            <div class="stats">
-              <div class="stat"><div class="stat-n" id="sBulks">0</div><div class="stat-l">Mis Bulks</div></div>
-              <div class="stat"><div class="stat-n" id="sMazorcas">0</div><div class="stat-l">Mazorcas</div></div>
-              <div class="stat"><div class="stat-n" id="sPromedio">—</div><div class="stat-l">Promedio</div></div>
-            </div>
-            <div class="actions">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <button class="btn btn-primary"   onclick="exportExcel(false)">⬇ Excel</button>
-                <button class="btn btn-primary"   style="background:#235c42;" onclick="exportCSV(false)">⬇ CSV</button>
+            <div class="card-body">
+              <div class="field-wrap" id="scanWrap">
+                <div class="field-tag">① Obs Unit ID</div>
+                <input id="inputScan" class="scan-input" type="text" placeholder="Escanea Obs Unit ID..." autocomplete="off" autofocus/>
               </div>
-              <button class="btn btn-sheets" onclick="enviarASheets(false)">📤 Enviar mis registros a Sheets</button>
-              <button class="btn btn-danger" onclick="limpiarTodo()">⚠ Limpiar mis registros</button>
+              <div class="qty-wrap" id="plotWrap">
+                <div class="qty-tag" style="color:#1a5c8a;">② Plot Code</div>
+                <input id="inputPlot" class="qty-input" type="text" placeholder="Escanea Plot Code..." style="caret-color:#1a5c8a;"/>
+              </div>
+              <div class="qty-wrap" id="qtyWrap">
+                <div class="qty-tag">③ Cantidad de mazorcas</div>
+                <input id="inputQty" class="qty-input" type="number" min="0" placeholder="Ej: 47"/>
+              </div>
+              <div class="steps">
+                <div class="step active" id="step1"><div class="step-num">①</div><div class="step-lbl">Obs Unit ID</div></div>
+                <div class="step"        id="step2"><div class="step-num">②</div><div class="step-lbl">Plot Code</div></div>
+                <div class="step"        id="step3"><div class="step-num">③</div><div class="step-lbl">Cantidad</div></div>
+                <div class="step"        id="step4"><div class="step-num">✓</div><div class="step-lbl">Guardado</div></div>
+              </div>
+              <div class="last-item" id="lastItem">
+                <div class="last-code" id="lastCode">—</div>
+                <div class="last-qty"><span id="lastQty">—</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted)">mazorcas</span></div>
+                <div class="last-meta" id="lastMeta">—</div>
+              </div>
+              <div class="stats">
+                <div class="stat"><div class="stat-n" id="sBulks">0</div><div class="stat-l">Mis Bulks</div></div>
+                <div class="stat"><div class="stat-n" id="sMazorcas">0</div><div class="stat-l">Mazorcas</div></div>
+                <div class="stat"><div class="stat-n" id="sPromedio">—</div><div class="stat-l">Promedio</div></div>
+              </div>
+              <div class="actions">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <button class="btn btn-primary" onclick="exportExcel(false)">⬇ Excel</button>
+                  <button class="btn btn-primary" style="background:#235c42;" onclick="exportCSV(false)">⬇ CSV</button>
+                </div>
+                <button class="btn btn-sheets" onclick="enviarASheets(false)">📤 Enviar mis registros a Sheets</button>
+                <button class="btn btn-danger"  onclick="limpiarTodo()">⚠ Limpiar mis registros</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-toolbar">
+            <h2>Mis registros — Mazorcas</h2>
+            <div class="search-wrap"><input id="searchMio" type="text" placeholder="Filtrar..." oninput="renderMios(this.value)"/></div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Obs Unit ID</th><th>Plot Code</th><th>Mazorcas</th><th>Hora</th><th></th></tr></thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">🌱</div>
+              <div class="empty-txt">Listo para comenzar.<br/>Escanea el primer bulk.</div>
             </div>
           </div>
         </div>
       </div>
-      <div class="tbl-card">
-        <div class="tbl-toolbar">
-          <h2>Mis registros</h2>
-          <div class="search-wrap"><input id="searchMio" type="text" placeholder="Filtrar..."/></div>
+    </div>
+
+    <!-- PANEL PLACAS DE MUESTREO -->
+    <div id="panelPlacas" style="display:none;">
+      <div class="wrap">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-head">
+              <div class="status-dot" id="statusDotP"></div>
+              <h2 id="statusLabelP">Listo — escanea Obs Unit ID</h2>
+            </div>
+            <div class="card-body">
+              <div class="field-wrap" id="scanWrapP">
+                <div class="field-tag">① Obs Unit ID</div>
+                <input id="inputScanP" class="scan-input" type="text" placeholder="Escanea Obs Unit ID..." autocomplete="off"/>
+              </div>
+              <div class="qty-wrap" id="plotWrapP">
+                <div class="qty-tag" style="color:#1a5c8a;">② Plot Code</div>
+                <input id="inputPlotP" class="qty-input" type="text" placeholder="Escanea Plot Code..." style="caret-color:#1a5c8a;"/>
+              </div>
+              <div class="qty-wrap" id="placaWrapP">
+                <div class="qty-tag" style="color:#7c3aed;">③ Sample Name</div>
+                <input id="inputPlacaP" class="qty-input" type="text" placeholder="Escanea Sample Name..." style="caret-color:#7c3aed;"/>
+              </div>
+              <div class="qty-wrap" id="qtyWrapP">
+                <div class="qty-tag">④ Cantidad de mazorcas</div>
+                <input id="inputQtyP" class="qty-input" type="number" min="0" placeholder="Ej: 47"/>
+              </div>
+              <div class="steps">
+                <div class="step active" id="step1P"><div class="step-num">①</div><div class="step-lbl">Obs Unit ID</div></div>
+                <div class="step"        id="step2P"><div class="step-num">②</div><div class="step-lbl">Plot Code</div></div>
+                <div class="step"        id="step3P"><div class="step-num">③</div><div class="step-lbl">Sample Name</div></div>
+                <div class="step"        id="step4P"><div class="step-num">④</div><div class="step-lbl">Cantidad</div></div>
+                <div class="step"        id="step5P"><div class="step-num">✓</div><div class="step-lbl">Guardado</div></div>
+              </div>
+              <div class="last-item" id="lastItemP">
+                <div class="last-code" id="lastCodeP">—</div>
+                <div class="last-qty"><span id="lastQtyP">—</span> <span style="font-size:0.75rem;font-weight:500;color:var(--muted)">mazorcas</span></div>
+                <div class="last-meta" id="lastMetaP">—</div>
+              </div>
+              <div class="stats">
+                <div class="stat"><div class="stat-n" id="sBulksP">0</div><div class="stat-l">Mis Registros</div></div>
+                <div class="stat"><div class="stat-n" id="sPlacas">0</div><div class="stat-l">Mazorcas</div></div>
+                <div class="stat"><div class="stat-n" id="sPromedioP">—</div><div class="stat-l">Promedio</div></div>
+              </div>
+              <div class="actions">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <button class="btn btn-primary" onclick="exportExcelPlacas()">⬇ Excel</button>
+                  <button class="btn btn-primary" style="background:#235c42;" onclick="exportCSVPlacas()">⬇ CSV</button>
+                </div>
+                <button class="btn btn-danger" onclick="limpiarTodoPlacas()">⚠ Limpiar mis registros de muestra</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>#</th><th>Obs Unit ID</th><th>Plot Code</th><th>Mazorcas</th><th>Hora</th><th></th></tr></thead>
-            <tbody id="tbody"></tbody>
-          </table>
-          <div class="empty-state" id="emptyState">
-            <div class="empty-icon">🌱</div>
-            <div class="empty-txt">Listo para comenzar.<br/>Escanea el primer bulk.</div>
+        <div class="tbl-card">
+          <div class="tbl-toolbar">
+            <h2>Mis registros — Muestras</h2>
+            <div class="search-wrap"><input id="searchPlaca" type="text" placeholder="Filtrar..." oninput="renderPlacas(this.value)"/></div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Obs Unit ID</th><th>Plot Code</th><th>Sample Name</th><th>Mazorcas</th><th>Hora</th><th></th></tr></thead>
+              <tbody id="tbodyPlacas"></tbody>
+            </table>
+            <div class="empty-state" id="emptyPlacas">
+              <div class="empty-icon">🔬</div>
+              <div class="empty-txt">Listo para comenzar.<br/>Escanea el primer registro de muestra.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -426,7 +597,7 @@ td.act  { text-align: right; }
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>#</th><th>Obs Unit ID</th><th>Plot Code</th><th>Mazorcas</th><th>Registrado por</th><th>Fecha</th><th>Hora</th><th></th></tr></thead>
+            <thead><tr><th>#</th><th>Tipo</th><th>Obs Unit ID</th><th>Plot Code</th><th>Sample Name</th><th>Cant.</th><th>Registrado por</th><th>Fecha</th><th>Hora</th><th></th></tr></thead>
             <tbody id="tbodyHist"></tbody>
           </table>
           <div class="empty-state" id="emptyHist">
@@ -451,22 +622,53 @@ td.act  { text-align: right; }
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-modal">
+    <h3>✏️ Editar registro</h3>
+    <div class="edit-field">
+      <label>Obs Unit ID</label>
+      <input id="editCodigo" type="text" placeholder="Obs Unit ID"/>
+    </div>
+    <div class="edit-field">
+      <label>Plot Code</label>
+      <input id="editPlot" type="text" placeholder="Plot Code"/>
+    </div>
+    <div class="edit-field" id="editPlacaField" style="display:none;">
+      <label>Sample Name</label>
+      <input id="editPlaca" type="text" placeholder="Sample Name"/>
+    </div>
+    <input type="hidden" id="editId"/>
+    <input type="hidden" id="editTipo"/> <!-- mazorcas | placas -->
+    <div class="edit-btns">
+      <button class="btn-cancel-sm" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn-save-sm"   onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 // ── CREDENCIALES ─────────────────────────────────────────────
-const BIN_DATA     = "69b2c926c3097a1dd51c8ed9";
+const BIN_DATA      = "69b2c926c3097a1dd51c8ed9";
 const BIN_HISTORIAL = "69b33f7eb7ec241ddc637ca4"; // historial permanente Ronald
-const BIN_USERS = "69b2eb93aa77b81da9dc3836";
+const BIN_PLACAS    = "69d435d136566621a88606de"; // placas de muestreo
+const BIN_USERS     = "69b2eb93aa77b81da9dc3836";
 const API_KEY   = "$2a$10$sIxUKUhDKyvNvhdedW2XX.rYODI2GsngOLf.XWGOWlFQEcrQrIRga";
 const HEADERS   = { "Content-Type": "application/json", "X-Master-Key": API_KEY };
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby2wGw4Ybxxy7qFyc8Ei9ZWC8u9MjsPK5oga5m-HnDzT4GCodUJ4CDIb7MhCFsNqwcc/exec";
 const BASE      = id => `https://api.jsonbin.io/v3/b/${id}`;
 
 // ── STATE ────────────────────────────────────────────────────
-let registros = [];
-let sesion    = null;
-let modo      = "scan";
+let registros  = [];
+let placas     = [];
+let sesion     = null;
+let modo       = "scan";
+let modoP      = "scan";
+let scanMode   = "mazorcas"; // "mazorcas" | "placas"
+let codigoActualP = "";
+let plotActualP   = "";
 let codigoActual = "";
 let plotActual    = "";
 
@@ -547,7 +749,13 @@ async function iniciarApp() {
   $("userAvatar").textContent = sesion.nombre.charAt(0).toUpperCase();
   $("userName").textContent   = sesion.nombre;
   $("userRol").textContent    = sesion.rol === "admin" ? "Administrador" : "Usuario";
-  if (sesion.rol === "admin") $("adminTabs").style.display = "flex";
+  if (sesion.rol === "admin") {
+    $("adminTabs").style.display = "flex";
+    $("navSep").style.display = "block";
+    // When admin is on scan tab, subtabs visible; hide when on other tabs
+  }
+  // subtabs always visible for all users
+  $("navSubtabs").style.display = "flex";
   setTab("scan");
   await cargarDatos();
   setTimeout(() => $("inputScan").focus(), 200);
@@ -557,17 +765,21 @@ async function iniciarApp() {
 async function cargarDatos() {
   setSyncPill("cargando…", "saving");
   try {
-    const [rData, rHist] = await Promise.all([
+    const [rData, rHist, rPlac] = await Promise.all([
       fetch(BASE(BIN_DATA)     + "/latest", { headers: { "X-Master-Key": API_KEY } }),
-      fetch(BASE(BIN_HISTORIAL)+ "/latest", { headers: { "X-Master-Key": API_KEY } })
+      fetch(BASE(BIN_HISTORIAL)+ "/latest", { headers: { "X-Master-Key": API_KEY } }),
+      fetch(BASE(BIN_PLACAS)   + "/latest", { headers: { "X-Master-Key": API_KEY } })
     ]);
     const dData = await rData.json();
     const dHist = await rHist.json();
+    const dPlac = await rPlac.json();
     registros     = dData.record?.registros  || [];
     historialData = dHist.record?.historial  || [];
+    placas        = dPlac.record?.placas     || [];
     // Actualizar cache local
-    localStorage.setItem("bulk_local",          JSON.stringify(registros));
+    localStorage.setItem("bulk_local",           JSON.stringify(registros));
     localStorage.setItem("bulk_historial_local", JSON.stringify(historialData));
+    localStorage.setItem("bulk_placas_local",    JSON.stringify(placas));
     setSyncPill("✓ nube", "ok");
     // Intentar sincronizar cola pendiente
     await sincronizarCola();
@@ -575,6 +787,7 @@ async function cargarDatos() {
     // Sin internet: usar cache local
     registros     = JSON.parse(localStorage.getItem("bulk_local")           || "[]");
     historialData = JSON.parse(localStorage.getItem("bulk_historial_local") || "[]");
+    placas        = JSON.parse(localStorage.getItem("bulk_placas_local")    || "[]");
     setSyncPill("sin red · modo offline", "err");
   }
   render();
@@ -667,6 +880,12 @@ function setTab(tab) {
     if (btn) btn.classList.toggle("active", t === tab);
     $("view" + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? "block" : "none";
   });
+  // Subtabs solo visibles en tab Escanear
+  const navSub = $("navSubtabs");
+  if (navSub) navSub.style.display = tab === "scan" ? "flex" : "none";
+  const sep = $("navSep");
+  if (sep && sesion?.rol === "admin") sep.style.display = tab === "scan" ? "block" : "none";
+
   if (tab === "all")   renderAll($("searchAll").value);
   if (tab === "users") renderUsers();
   if (tab === "hist")  renderHistorial($("searchHist").value);
@@ -761,6 +980,7 @@ async function registrar(codigo, plot, cantidad) {
   const now = new Date();
   const entry = {
     id:      Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    tipo:    "mazorca",
     codigo, plot, cantidad,
     usuario: sesion.username,
     nombre:  sesion.nombre,
@@ -794,7 +1014,10 @@ function renderMios(q = "") {
       <td class="code" title="${r.plot||''}">${r.plot||'—'}</td>
       <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
       <td class="time">${r.hora}</td>
-      <td class="act"><button class="btn-del" onclick="eliminar('${r.id}')">✕</button></td>
+      <td class="act">
+        <button class="btn-edit-row" onclick="abrirEditar('${r.id}','mazorcas')" title="Editar">✎</button>
+        <button class="btn-del"      onclick="eliminar('${r.id}')">✕</button>
+      </td>
     </tr>`).join("") : "";
 }
 
@@ -1108,21 +1331,30 @@ async function renderHistorial(q = "") {
     !q ||
     (r.codigo||"").toLowerCase().includes(q.toLowerCase()) ||
     (r.plot||"").toLowerCase().includes(q.toLowerCase()) ||
-    (r.nombre||"").toLowerCase().includes(q.toLowerCase())
+    (r.nombre||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.sampleName||"").toLowerCase().includes(q.toLowerCase()) ||
+    (r.tipo||"").toLowerCase().includes(q.toLowerCase())
   );
   $("emptyHist").style.display = fil.length ? "none" : "block";
   $("tbodyHist").innerHTML = fil.length
-    ? [...fil].reverse().map((r,i) => `
+    ? [...fil].reverse().map((r,i) => {
+        const tipo = r.tipo === "muestra" ? "muestra" : "mazorca";
+        const badgeClass = tipo === "muestra" ? "tipo-muestra" : "tipo-mazorca";
+        const badgeLabel = tipo === "muestra" ? "Muestra" : "Mazorca";
+        return `
       <tr>
         <td class="seq">${fil.length - i}</td>
+        <td><span class="tipo-badge ${badgeClass}">${badgeLabel}</span></td>
         <td class="code" title="${r.codigo}">${r.codigo}</td>
         <td class="code" title="${r.plot||''}">${r.plot||'—'}</td>
+        <td class="code" title="${r.sampleName||''}">${r.sampleName||'—'}</td>
         <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
         <td class="user">${r.nombre||r.usuario||'—'}</td>
         <td class="time">${r.fecha}</td>
         <td class="time">${r.hora}</td>
         <td class="act"><button class="btn-del" onclick="eliminarHistorial('${r.id}')">✕</button></td>
-      </tr>`).join("")
+      </tr>`;
+      }).join("")
     : "";
 }
 
@@ -1150,10 +1382,10 @@ async function limpiarHistorial() {
 
 function exportExcelHistorial() {
   if (!historialData.length) { toast("No hay datos en el historial"); return; }
-  const cols = ["#","Obs Unit ID","Plot Code","Mazorcas","Registrado por","Fecha","Hora"];
-  const rows = historialData.map((r,i) => [i+1, r.codigo, r.plot||"", Number(r.cantidad), r.nombre||r.usuario||"", r.fecha, r.hora]);
+  const cols = ["#","Tipo","Obs Unit ID","Plot Code","Sample Name","Cant.","Registrado por","Fecha","Hora"];
+  const rows = historialData.map((r,i) => [i+1, r.tipo==="muestra"?"Muestra":"Mazorca", r.codigo, r.plot||"", r.sampleName||"", Number(r.cantidad), r.nombre||r.usuario||"", r.fecha, r.hora]);
   const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
-  ws["!cols"] = [{wch:5},{wch:30},{wch:25},{wch:12},{wch:20},{wch:12},{wch:10}];
+  ws["!cols"] = [4,10,22,14,16,8,18,12,10].map(w=>({wch:w}));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Historial");
   XLSX.writeFile(wb, "historial_ronald_"+new Date().toISOString().slice(0,10)+".xlsx");
@@ -1162,8 +1394,8 @@ function exportExcelHistorial() {
 
 function exportCSVHistorial() {
   if (!historialData.length) { toast("No hay datos en el historial"); return; }
-  const cols = ["#","Obs Unit ID","Plot Code","Mazorcas","Registrado por","Fecha","Hora"];
-  const rows = historialData.map((r,i) => [i+1, r.codigo, r.plot||"", r.cantidad, r.nombre||r.usuario||"", r.fecha, r.hora]
+  const cols = ["#","Tipo","Obs Unit ID","Plot Code","Sample Name","Cant.","Registrado por","Fecha","Hora"];
+  const rows = historialData.map((r,i) => [i+1, r.tipo==="muestra"?"Muestra":"Mazorca", r.codigo, r.plot||"", r.sampleName||"", r.cantidad, r.nombre||r.usuario||"", r.fecha, r.hora]
     .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
   const a = document.createElement("a");
   a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent([cols.join(","),...rows].join("\n"));
@@ -1194,6 +1426,251 @@ if (sesionGuardada) {
 } else {
   setTimeout(()=>$("loginUser").focus(), 100);
 }
+
+// -- SCAN MODE (Mazorcas / Placas) ------------------------------------
+function setScanMode(mode) {
+  scanMode = mode;
+  $("subtabMazorcas").classList.toggle("active", mode === "mazorcas");
+  $("subtabPlacas").classList.toggle("active",   mode === "placas");
+  $("panelMazorcas").style.display = mode === "mazorcas" ? "block" : "none";
+  $("panelPlacas").style.display   = mode === "placas"   ? "block" : "none";
+  if (mode === "mazorcas") { setModo("scan"); }
+  else                     { setModoP("scan"); }
+}
+
+// -- PLACAS SCAN LOGIC (4 pasos) --------------------------------------
+let placaActualP = ""; // Sample Name (paso 3)
+
+function setModoP(m) {
+  modoP = m;
+  ["step1P","step2P","step3P","step4P","step5P"].forEach(s => { const el=$(s); if(el) el.classList.remove("active"); });
+  $("qtyWrapP").classList.remove("active-field");
+  $("plotWrapP").classList.remove("active-field");
+  $("placaWrapP").classList.remove("active-field");
+  $("scanWrapP").classList.remove("focused");
+  if (m === "scan") {
+    $("step1P").classList.add("active");
+    $("statusDotP").classList.remove("waiting");
+    $("statusLabelP").textContent = "① Escanea Obs Unit ID";
+    $("inputScanP").value = "";
+    setTimeout(() => $("inputScanP").focus(), 50);
+  } else if (m === "plot") {
+    $("plotWrapP").classList.add("active-field");
+    $("step2P").classList.add("active");
+    $("statusDotP").classList.add("waiting");
+    $("statusLabelP").textContent = "② Escanea Plot Code";
+    $("inputPlotP").value = "";
+    setTimeout(() => $("inputPlotP").focus(), 50);
+  } else if (m === "placa") {
+    $("placaWrapP").classList.add("active-field");
+    $("step3P").classList.add("active");
+    $("statusDotP").classList.add("waiting");
+    $("statusLabelP").textContent = "③ Escanea Sample Name";
+    $("inputPlacaP").value = "";
+    setTimeout(() => $("inputPlacaP").focus(), 50);
+  } else if (m === "qty") {
+    $("qtyWrapP").classList.add("active-field");
+    $("step4P").classList.add("active");
+    $("statusDotP").classList.add("waiting");
+    $("statusLabelP").textContent = "④ Escribe la cantidad de mazorcas";
+    $("inputQtyP").value = "";
+    setTimeout(() => $("inputQtyP").focus(), 50);
+  }
+}
+
+$("inputScanP").addEventListener("focus", () => $("scanWrapP").classList.add("focused"));
+$("inputScanP").addEventListener("blur",  () => $("scanWrapP").classList.remove("focused"));
+$("inputScanP").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const codigo = $("inputScanP").value.trim();
+  if (!codigo) return;
+  // Verificar duplicado en placas
+  const codigoUp = codigo.toUpperCase();
+  const prev = placas.find(h => (h.codigo||"").toUpperCase() === codigoUp);
+  if (prev) {
+    const info = `por ${prev.nombre||prev.usuario||"?"} el ${prev.fecha} a las ${prev.hora}`;
+    const continuar = confirm(`⚠️ OBS UNIT ID DUPLICADO\n\nEste código ya fue registrado ${info}.\n\n¿Continuar de todas formas?`);
+    if (!continuar) { $("inputScanP").value = ""; $("inputScanP").focus(); e.preventDefault(); return; }
+  }
+  codigoActualP = codigo;
+  $("scanWrapP").classList.add("flash");
+  setTimeout(() => $("scanWrapP").classList.remove("flash"), 350);
+  setModoP("plot"); e.preventDefault();
+});
+$("inputPlotP").addEventListener("keydown", e => {
+  if (e.key === "Escape") { setModoP("scan"); return; }
+  if (e.key !== "Enter") return;
+  const plot = $("inputPlotP").value.trim();
+  if (!plot) { toast("⚠ Plot Code es obligatorio"); $("inputPlotP").select(); return; }
+  plotActualP = plot;
+  $("plotWrapP").classList.add("flash");
+  setTimeout(() => $("plotWrapP").classList.remove("flash"), 350);
+  setModoP("placa"); e.preventDefault();
+});
+$("inputPlacaP").addEventListener("keydown", e => {
+  if (e.key === "Escape") { setModoP("scan"); return; }
+  if (e.key !== "Enter") return;
+  const sampleName = $("inputPlacaP").value.trim();
+  if (!sampleName) { toast("⚠ Sample Name es obligatorio"); $("inputPlacaP").select(); return; }
+  placaActualP = sampleName;
+  $("placaWrapP").classList.add("flash");
+  setTimeout(() => $("placaWrapP").classList.remove("flash"), 350);
+  setModoP("qty"); e.preventDefault();
+});
+$("inputQtyP").addEventListener("keydown", e => {
+  if (e.key === "Escape") { setModoP("scan"); return; }
+  if (e.key !== "Enter") return;
+  const qty = $("inputQtyP").value.trim();
+  if (!qty || isNaN(qty) || Number(qty) < 0) { toast("⚠ Ingresa una cantidad válida"); $("inputQtyP").select(); return; }
+  registrarPlaca(codigoActualP, plotActualP, placaActualP, Number(qty));
+  $("step4P").classList.remove("active"); $("step5P").classList.add("active");
+  setTimeout(() => setModoP("scan"), 400);
+  e.preventDefault();
+});
+
+async function registrarPlaca(codigo, plot, placa, cantidad) {
+  const now = new Date();
+  const entry = {
+    id:      Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+    tipo:    "muestra",
+    codigo, plot, sampleName, cantidad,
+    usuario: sesion.username,
+    nombre:  sesion.nombre,
+    fecha:   now.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"}),
+    hora:    now.toLocaleTimeString("es-ES"),
+    ts:      now.getTime()
+  };
+  placas.push(entry);
+  guardarEnHistorial(entry); // copia al historial permanente de Ronald
+  $("lastCodeP").textContent = entry.codigo + "  /  " + entry.plot + "  /  " + entry.sampleName;
+  $("lastQtyP").textContent  = entry.cantidad.toLocaleString();
+  $("lastMetaP").textContent = entry.fecha + " · " + entry.hora + " · " + entry.nombre;
+  $("lastItemP").classList.add("show");
+  renderPlacas(); updateStatsP(); await guardarPlacas();
+}
+
+async function guardarPlacas() {
+  localStorage.setItem("bulk_placas_local", JSON.stringify(placas));
+  try {
+    await fetch(BASE(BIN_PLACAS), { method: "PUT", headers: HEADERS, body: JSON.stringify({ placas }) });
+  } catch(e) { setSyncPill("⏳ sin red · placas guardadas local", "err"); }
+}
+
+function misPlacasFiltro(q) {
+  return placas.filter(r => r.usuario === sesion?.username && (!q || r.codigo.toLowerCase().includes(q.toLowerCase())));
+}
+
+function renderPlacas(q = "") {
+  const mios = misPlacasFiltro(q);
+  $("emptyPlacas").style.display = mios.length ? "none" : "block";
+  $("tbodyPlacas").innerHTML = mios.length ? [...mios].reverse().map((r,i) => `
+    <tr class="${i===0?'new-row':''}">
+      <td class="seq">${placas.indexOf(r)+1}</td>
+      <td class="code" title="${r.codigo}">${r.codigo}</td>
+      <td class="code" title="${r.plot||''}">${r.plot||'—'}</td>
+      <td class="code" title="${r.sampleName||''}">${r.sampleName||'—'}</td>
+      <td class="qty">${Number(r.cantidad).toLocaleString()}</td>
+      <td class="time">${r.hora}</td>
+      <td class="act">
+        <button class="btn-edit-row" onclick="abrirEditar('${r.id}','placas')" title="Editar">✎</button>
+        <button class="btn-del"      onclick="eliminarPlaca('${r.id}')">✕</button>
+      </td>
+    </tr>`).join("") : "";
+}
+
+function updateStatsP() {
+  const mios = misPlacasFiltro();
+  const tot  = mios.reduce((s,r)=>s+(Number(r.cantidad)||0),0);
+  $("sBulksP").textContent   = mios.length;
+  $("sPlacas").textContent   = tot.toLocaleString();
+  $("sPromedioP").textContent= mios.length ? (tot/mios.length).toFixed(1) : "—";
+}
+
+async function eliminarPlaca(id) {
+  placas = placas.filter(r => r.id !== id);
+  renderPlacas(); updateStatsP(); await guardarPlacas(); toast("Registro eliminado");
+}
+
+async function limpiarTodoPlacas() {
+  if (!confirm("¿Limpiar TODOS tus registros de muestra de la app?\n\nExporta primero si necesitas los datos.")) return;
+  const usuario = sesion?.username;
+  placas = placas.filter(r => r.usuario !== usuario);
+  await guardarPlacas();
+  renderPlacas(); updateStatsP();
+  toast("🗑 Registros de muestra limpiados");
+}
+
+function exportExcelPlacas() {
+  const mios = misPlacasFiltro();
+  if (!mios.length) { toast("No hay registros de muestra para exportar"); return; }
+  const wb = XLSX.utils.book_new();
+  const header = ["#","Obs Unit ID","Plot Code","Sample Name","Mazorcas","Registrado por","Fecha","Hora"];
+  const rows = mios.map((r,i)=>[i+1, r.codigo, r.plot||"", r.sampleName||"", r.cantidad, r.nombre||r.usuario, r.fecha, r.hora]);
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  ws["!cols"] = [4,22,14,16,10,18,12,10].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, "Muestras");
+  XLSX.writeFile(wb, `muestras_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast("Excel exportado ✓");
+}
+
+function exportCSVPlacas() {
+  const mios = misPlacasFiltro();
+  if (!mios.length) { toast("No hay registros de muestra para exportar"); return; }
+  const cols = ["#","Obs Unit ID","Plot Code","Sample Name","Mazorcas","Registrado por","Fecha","Hora"];
+  const rows = mios.map((r,i)=>[i+1,r.codigo,r.plot||"",r.sampleName||"",r.cantidad,r.nombre||r.usuario||"",r.fecha,r.hora]
+    .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent([cols.join(","),...rows].join("\n"));
+  a.download = `muestras_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); toast("CSV exportado ✓");
+}
+
+// -- EDIT MODAL -------------------------------------------------------
+function abrirEditar(id, tipo) {
+  const lista = tipo === "placas" ? placas : registros;
+  const r = lista.find(x => x.id === id);
+  if (!r) return;
+  $("editId").value     = id;
+  $("editTipo").value   = tipo;
+  $("editCodigo").value = r.codigo || "";
+  $("editPlot").value   = r.plot   || "";
+  // Mostrar campo placa solo para muestras
+  const esPlaca = tipo === "placas";
+  $("editPlacaField").style.display = esPlaca ? "block" : "none";
+  if (esPlaca) $("editPlaca").value = r.sampleName || "";
+  $("editOverlay").classList.add("active");
+  setTimeout(() => $("editCodigo").focus(), 100);
+}
+
+function closeEditModal() {
+  $("editOverlay").classList.remove("active");
+}
+
+async function guardarEdicion() {
+  const id    = $("editId").value;
+  const tipo  = $("editTipo").value;
+  const codigo = $("editCodigo").value.trim();
+  const plot   = $("editPlot").value.trim();
+  if (!codigo || !plot) { toast("⚠ Obs Unit ID y Plot Code son obligatorios"); return; }
+
+  if (tipo === "placas") {
+    const sampleName = $("editPlaca").value.trim();
+    placas = placas.map(r => r.id === id ? {...r, codigo, plot, sampleName} : r);
+    await guardarPlacas();
+    renderPlacas($("searchPlaca").value);
+  } else {
+    registros = registros.map(r => r.id === id ? {...r, codigo, plot} : r);
+    await guardarDatos();
+    renderMios($("searchMio").value);
+  }
+  closeEditModal();
+  toast("✓ Registro actualizado");
+}
+
+$("editOverlay").addEventListener("click", e => { if (e.target === $("editOverlay")) closeEditModal(); });
+$("editCodigo").addEventListener("keydown", e => { if (e.key === "Enter") $("editPlot").focus(); });
+$("editPlot").addEventListener("keydown",   e => { if (e.key === "Enter") guardarEdicion(); });
+
 </script>
 </body>
 </html>
