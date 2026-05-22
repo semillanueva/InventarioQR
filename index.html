@@ -1533,7 +1533,7 @@ async function registrarPlaca(codigo, plot, placa, cantidad) {
   const entry = {
     id:      Date.now().toString(36) + Math.random().toString(36).slice(2,5),
     tipo:    "muestra",
-    codigo, plot, sampleName, cantidad,
+    codigo, plot, sampleName: placa, cantidad,
     usuario: sesion.username,
     nombre:  sesion.nombre,
     fecha:   now.toLocaleDateString("es-ES",{day:"2-digit",month:"2-digit",year:"numeric"}),
